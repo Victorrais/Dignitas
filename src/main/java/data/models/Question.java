@@ -1,18 +1,15 @@
-package model.entity;
+package data.models;
 
 import jakarta.persistence.*;
 
 @Entity
-public class Questions {
+public class Question {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idQuestion;
 
     @Column(nullable = false)
-    private String statement, subject;
+    private String statement, baseText, font;
 
-    @OneToMany
-    @JoinColumn(name = "idExam")
-    private Exam fkExam;
 }
