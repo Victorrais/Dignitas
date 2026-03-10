@@ -7,7 +7,7 @@ public class History {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idHistory;
-    private boolean review;
+    private boolean review=false;
 
     @OneToOne
     @JoinColumn(name = "idAlternative")
@@ -15,6 +15,14 @@ public class History {
 
     @OneToOne
     @JoinColumn(name = "idQuestions")
-    private Question fkQuestions;
+    private Question fkQuestion;
 
+    public History(Alternative fkAnswered, Question fkQuestion) {
+        this.fkAnswered = fkAnswered;
+        this.fkQuestion = fkQuestion;
+    }
+    @Override
+    public String toString(){
+        return "Historico: "+idHistory+"Questão: "+fkQuestion.toString()+"Alternativa: "+fkAnswered.toString();
+    }
 }

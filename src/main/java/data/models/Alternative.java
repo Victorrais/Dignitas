@@ -18,4 +18,12 @@ public class Alternative {
     @ManyToOne
     @JoinColumn(name = "idQuestions")
     private Question idQuestion;
+
+    public void setIdQuestion(Question idQuestion) {
+        this.idQuestion = idQuestion;
+    }
+    @Override
+    public String toString() {
+        return statement;
+    }
 }

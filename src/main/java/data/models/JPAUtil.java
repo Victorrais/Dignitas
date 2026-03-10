@@ -20,7 +20,7 @@ public abstract class JPAUtil {
         return em;
     }
 
-    private static void closeCon(){
+    public static void closeCon(){
         if(fem.isOpen()||em.isOpen()){
             em.close();
             fem.close();
