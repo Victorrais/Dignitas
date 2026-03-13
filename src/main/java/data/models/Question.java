@@ -1,37 +1,52 @@
 package data.models;
-
-import jakarta.persistence.*;
-
-@Entity
 public class Question {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long idQuestion;
 
-    @Column(nullable = false)
+    private long idQuestion;
+
+
     private String statement, baseText, font;
 
-    public Long getId() {
+
+    public long getIdQuestion() {
         return idQuestion;
     }
 
-    public void createQuestion(ContentBlock block){
-        switch (block.toString()){
-            case "Font" ->
-                    font=block.blockFormat();
-            case "Statement" ->
-                    statement=block.blockFormat();
-            case "text" ->
-                    baseText=block.blockFormat();
-        }
+    public void setIdQuestion(long idQuestion) {
+        this.idQuestion = idQuestion;
+    }
+
+    public String getStatement() {
+        return statement;
+    }
+
+    public void setStatement(String statement) {
+        this.statement = statement;
+    }
+
+    public String getBaseText() {
+        return baseText;
+    }
+
+    public void setBaseText(String baseText) {
+        this.baseText = baseText.replace("\r","\n");
+    }
+
+    public String getFont() {
+        return font;
+    }
+
+    public void setFont(String font) {
+        this.font = font;
     }
 
     @Override
     public String toString(){
-        return "\n"+baseText+"\n"+
+        return  "\nQuestão: "+
+                idQuestion+"\n"+
+                baseText+"\n"+
                 font+"\n\n"+
-                statement;
+                statement+"\n";
     }
 
 }

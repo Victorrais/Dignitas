@@ -1,29 +1,32 @@
 package data.models;
-
-import jakarta.persistence.*;
-
-@Entity
 public class Alternative {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long idAlternative;
 
-    @Column(nullable = false)
+    private long idAlternative;
+
+
     private String statement;
 
-    @Column(nullable = false, name = "is_answer")
+
     private boolean isAnswer;
 
-    @ManyToOne
-    @JoinColumn(name = "idQuestions")
-    private Question idQuestion;
 
-    public void setIdQuestion(Question idQuestion) {
+
+    private long idQuestion;
+
+    public void setStatement(String statement) {
+        this.statement = statement;
+    }
+
+    public long getIdQuestion() {
+        return idQuestion;
+    }
+
+    public void setIdQuestion(long idQuestion) {
         this.idQuestion = idQuestion;
     }
     @Override
     public String toString() {
-        return statement;
+        return "\n"+statement;
     }
 }

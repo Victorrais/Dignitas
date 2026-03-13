@@ -1,6 +1,5 @@
 package data;
 
-import data.DAO.QuestionDAO;
 import data.models.ContentBlock;
 import data.models.Question;
 import org.apache.pdfbox.Loader;
@@ -21,7 +20,8 @@ public class pdfParser {
     private static final String PATH= "src/main/resources/testPage.pdf";
     private PDDocument doc;
 
-    private List<PDDocument> loadDoc()throws IOException {
+
+    public String loadDoc()throws IOException {
         try{
             doc = Loader.loadPDF(
                     new RandomAccessReadBufferedFile(PATH)
@@ -30,6 +30,9 @@ public class pdfParser {
             throw new RuntimeException(e);
         }
         Splitter splitter = new Splitter();
-        return splitter.split(doc);
+        List<PDDocument> list=splitter.split(doc);
+
+        PDFTextStripper stripper = new PDFTextStripper();
+        return stripper.getText(list.get(1));
     }
 }
