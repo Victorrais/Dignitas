@@ -1,15 +1,23 @@
 package data.models;
-public class History {
 
+import jakarta.persistence.*;
+
+@Entity
+public class History {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long idHistory;
     private boolean review=false;
 
+    @OneToOne
+    @JoinColumn(name = "idAlternative")
     private Alternative fkAnswered;
 
+    @OneToOne
+    @JoinColumn(name = "idQuestions")
+    private Question fkQuestion;
 
-    private long fkQuestion;
-
-    public History(Alternative fkAnswered, long fkQuestion) {
+    public History(Alternative fkAnswered, Question fkQuestion) {
         this.fkAnswered = fkAnswered;
         this.fkQuestion = fkQuestion;
     }

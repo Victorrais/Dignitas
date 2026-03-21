@@ -81,7 +81,8 @@ public class Main{
                     }
                     if (status==state.ALTERNATIVE&&matcher.find()){
                             Alternative alt = new Alternative();
-                            alt.setIdQuestion(i);
+                            //todo: verificar necessidade
+                            //alt.setIdQuestion(i);
                             alt.setStatement(line);
                             alternativeList.add(alt);
                     } else if (status==state.TEXT) build.append(line).append(" ");
@@ -108,7 +109,7 @@ public class Main{
         for(Question q : questionList){
             System.out.println(q);
             for(Alternative a : alternativeList){
-                if(a.getIdQuestion()==q.getIdQuestion()){
+                if(a.getIdQuestion().equals(q.getIdQuestion())){
                     System.out.println(a);
                 }
             }
