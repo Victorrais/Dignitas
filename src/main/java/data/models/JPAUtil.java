@@ -4,26 +4,24 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
 
+import java.util.Optional;
+
 public abstract class JPAUtil {
     private static final String PERSISTENCE = "hibernate";
-    private static EntityManagerFactory fem;
-    private static EntityManager em;
+    private static Optional<EntityManagerFactory> fem = Optional.empty();
+    private static Optional<EntityManager> em = Optional.empty();
 
     //TODO: verificar funcionamento do jpa
     public static EntityManager getCon(){
-        if(!fem.isOpen()||fem==null){
-            fem = Persistence.createEntityManagerFactory(PERSISTENCE);
-        }
-        if (!em.isOpen()||em==null){
-            em = fem.createEntityManager();
-        }
-        return em;
+        fem=fem.filter(EntityManagerFactory::isOpen)
+                .or(()-> Optional.of(Persistence.createEntityManagerFactory(PERSISTENCE)));
+        em=em.filter(EntityManager::isOpen)
+                .or(()-> fem.map(EntityManagerFactory::createEntityManager));
+        return em.orElseThrow();
     }
 
-    private static void closeCon(){
-        if(fem.isOpen()||em.isOpen()){
-            em.close();
-            fem.close();
-        }
+    public static void closeCon(){
+        em.ifPresent(e->{if(e.isOpen())e.close();});
+        fem.ifPresent(e->{if(e.isOpen())e.close();});
     }
 }

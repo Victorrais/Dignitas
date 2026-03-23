@@ -3,6 +3,7 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 .kotlin
+src/main/resources/testPage.pdf
 
 ### IntelliJ IDEA ###
 .idea/modules.xml

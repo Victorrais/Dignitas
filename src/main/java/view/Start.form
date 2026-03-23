@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="view.Start">
+  <grid id="27dc6" binding="panel" layout-manager="BorderLayout" hgap="0" vgap="0">
+    <constraints>
+      <xy x="20" y="20" width="500" height="400"/>
+    </constraints>
+    <properties/>
+    <border type="none"/>
+    <children>
+      <component id="14e98" class="javax.swing.JLabel" binding="mainLabel">
+        <constraints border-constraint="North"/>
+        <properties>
+          <alignmentY value="0.5"/>
+          <font name="JetBrains Mono ExtraBold" size="16" style="3"/>
+          <horizontalAlignment value="0"/>
+          <text value="Dignitas"/>
+          <verticalAlignment value="3"/>
+          <verticalTextPosition value="3"/>
+        </properties>
+      </component>
+      <component id="39c71" class="javax.swing.JLabel">
+        <constraints border-constraint="South"/>
+        <properties>
+          <font size="9" style="2"/>
+          <horizontalAlignment value="0"/>
+          <text value="Dignitas ver 1.0"/>
+        </properties>
+      </component>
+      <grid id="fcd2c" layout-manager="GridBagLayout">
+        <constraints border-constraint="Center"/>
+        <properties/>
+        <border type="none"/>
+        <children>
+          <component id="39b2d" class="javax.swing.JButton" binding="questoesButton">
+            <constraints>
+              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+              <gridbag top="20" left="20" bottom="20" right="20" weightx="0.0" weighty="0.0"/>
+            </constraints>
+            <properties>
+              <actionCommand value="questao"/>
+              <maximumSize width="164" height="34"/>
+              <minimumSize width="164" height="34"/>
+              <preferredSize width="164" height="34"/>
+              <text value="Questões"/>
+            </properties>
+          </component>
+          <component id="c735b" class="javax.swing.JButton" binding="historicoButton">
+            <constraints>
+              <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+              <gridbag top="20" left="20" bottom="20" right="20" weightx="0.0" weighty="0.0"/>
+            </constraints>
+            <properties>
+              <actionCommand value="historico"/>
+              <maximumSize width="164" height="34"/>
+              <minimumSize width="164" height="34"/>
+              <name value=""/>
+              <preferredSize width="164" height="34"/>
+              <text value="Histórico"/>
+            </properties>
+          </component>
+          <component id="370f" class="javax.swing.JButton" binding="BancoButton">
+            <constraints>
+              <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+              <gridbag top="20" left="20" bottom="20" right="20" weightx="0.0" weighty="0.0"/>
+            </constraints>
+            <properties>
+              <actionCommand value="banco"/>
+              <maximumSize width="164" height="34"/>
+              <minimumSize width="164" height="34"/>
+              <name value=""/>
+              <preferredSize width="164" height="34"/>
+              <text value="Banco de Questões"/>
+            </properties>
+          </component>
+        </children>
+      </grid>
+    </children>
+  </grid>
+</form>

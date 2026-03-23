@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="view.Home">
+  <grid id="27dc6" binding="MainPanel" layout-manager="BorderLayout" hgap="0" vgap="0">
+    <constraints>
+      <xy x="20" y="20" width="512" height="400"/>
+    </constraints>
+    <properties/>
+    <border type="none"/>
+    <children>
+      <grid id="2f2bb" binding="topMenu" layout-manager="FlowLayout" hgap="5" vgap="5" flow-align="0">
+        <constraints border-constraint="North"/>
+        <properties/>
+        <border type="none"/>
+        <children>
+          <component id="7d9a3" class="javax.swing.JButton" binding="resolverQuestoesButton">
+            <constraints/>
+            <properties>
+              <actionCommand value="questao"/>
+              <text value="Resolver Questões"/>
+            </properties>
+          </component>
+          <component id="beb3f" class="javax.swing.JButton" binding="historicoButton">
+            <constraints/>
+            <properties>
+              <actionCommand value="historico"/>
+              <text value="Histórico"/>
+            </properties>
+          </component>
+          <component id="7b3c7" class="javax.swing.JButton" binding="bancoDeQuestoesButton">
+            <constraints/>
+            <properties>
+              <actionCommand value="banco"/>
+              <horizontalAlignment value="0"/>
+              <text value="Banco de Questões"/>
+            </properties>
+          </component>
+        </children>
+      </grid>
+      <grid id="3f41d" binding="ContentPanel" layout-manager="CardLayout" hgap="0" vgap="0">
+        <constraints border-constraint="Center"/>
+        <properties/>
+        <border type="none"/>
+        <children>
+          <grid id="5afd2" binding="QuestoesPanel" layout-manager="BorderLayout" hgap="0" vgap="0">
+            <constraints>
+              <card name="questao"/>
+            </constraints>
+            <properties>
+              <visible value="false"/>
+            </properties>
+            <border type="none"/>
+            <children>
+              <component id="ee7b0" class="javax.swing.JLabel" binding="sentenceLabel">
+                <constraints border-constraint="Center"/>
+                <properties>
+                  <preferredSize width="36" height="38"/>
+                  <text value=""/>
+                </properties>
+              </component>
+              <grid id="e0fab" binding="AlternativesPanel" layout-manager="GridBagLayout">
+                <constraints border-constraint="South"/>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <component id="434a0" class="javax.swing.JRadioButton" binding="altA">
+                    <constraints>
+                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                      <gridbag top="5" left="5" bottom="5" right="5" weightx="1.0" weighty="0.0"/>
+                    </constraints>
+                    <properties>
+                      <text value=""/>
+                    </properties>
+                  </component>
+                  <component id="a95f5" class="javax.swing.JRadioButton" binding="altB">
+                    <constraints>
+                      <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                      <gridbag top="5" left="5" bottom="5" right="5" weightx="1.0" weighty="0.0"/>
+                    </constraints>
+                    <properties>
+                      <text value=""/>
+                    </properties>
+                  </component>
+                  <component id="bee9a" class="javax.swing.JRadioButton" binding="altC">
+                    <constraints>
+                      <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                      <gridbag top="5" left="5" bottom="5" right="5" weightx="1.0" weighty="0.0"/>
+                    </constraints>
+                    <properties>
+                      <text value=""/>
+                    </properties>
+                  </component>
+                  <component id="ad791" class="javax.swing.JRadioButton" binding="altD">
+                    <constraints>
+                      <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                      <gridbag top="5" left="5" bottom="5" right="5" weightx="1.0" weighty="0.0"/>
+                    </constraints>
+                    <properties>
+                      <text value=""/>
+                    </properties>
+                  </component>
+                  <component id="8b4a1" class="javax.swing.JRadioButton" binding="altE">
+                    <constraints>
+                      <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                      <gridbag top="5" left="5" bottom="5" right="5" weightx="1.0" weighty="0.0"/>
+                    </constraints>
+                    <properties>
+                      <text value=""/>
+                    </properties>
+                  </component>
+                  <component id="e46f9" class="javax.swing.JButton" binding="confirmButton">
+                    <constraints>
+                      <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+                      <gridbag top="10" left="10" bottom="10" right="10" weightx="0.0" weighty="0.0"/>
+                    </constraints>
+                    <properties>
+                      <enabled value="false"/>
+                      <text value="Confirmar"/>
+                    </properties>
+                  </component>
+                </children>
+              </grid>
+              <component id="b7634" class="javax.swing.JTextPane" binding="baseTextLabel">
+                <constraints border-constraint="North"/>
+                <properties/>
+              </component>
+            </children>
+          </grid>
+          <grid id="f9e63" binding="BancoPanel" layout-manager="BorderLayout" hgap="0" vgap="0">
+            <constraints>
+              <card name="banco"/>
+            </constraints>
+            <properties/>
+            <border type="none"/>
+            <children>
+              <grid id="cb9cb" binding="FiltroPanel" layout-manager="GridBagLayout">
+                <constraints border-constraint="North"/>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <component id="c1092" class="javax.swing.JLabel">
+                    <constraints>
+                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                      <gridbag top="10" left="10" bottom="10" right="0" weightx="0.0" weighty="0.0"/>
+                    </constraints>
+                    <properties>
+                      <text value="Editar Questões"/>
+                    </properties>
+                  </component>
+                </children>
+              </grid>
+              <grid id="73217" binding="tabelaPanel" layout-manager="BorderLayout" hgap="0" vgap="0">
+                <constraints border-constraint="Center"/>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <component id="d1bf1" class="javax.swing.JButton" binding="editarQuestao">
+                    <constraints border-constraint="South"/>
+                    <properties>
+                      <actionCommand value="0"/>
+                      <enabled value="false"/>
+                      <label value="Excluir Questão"/>
+                      <selected value="false"/>
+                      <text value="Excluir Questão"/>
+                      <visible value="true"/>
+                    </properties>
+                  </component>
+                  <scrollpane id="cd30b" binding="ScrollPaneBanco">
+                    <constraints border-constraint="Center"/>
+                    <properties/>
+                    <border type="none"/>
+                    <children>
+                      <component id="6b47d" class="javax.swing.JTable" binding="bancoTable" custom-create="true">
+                        <constraints/>
+                        <properties>
+                          <autoCreateRowSorter value="true"/>
+                          <autoResizeMode value="2"/>
+                        </properties>
+                      </component>
+                    </children>
+                  </scrollpane>
+                </children>
+              </grid>
+            </children>
+          </grid>
+          <grid id="b5fa6" binding="HistoricoPanel" layout-manager="BorderLayout" hgap="0" vgap="0">
+            <constraints>
+              <card name="historico"/>
+            </constraints>
+            <properties/>
+            <border type="none"/>
+            <children>
+              <grid id="e528" binding="hFiltroPanel" layout-manager="GridBagLayout">
+                <constraints border-constraint="North"/>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <component id="221f2" class="javax.swing.JLabel">
+                    <constraints>
+                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                      <gridbag top="10" left="10" bottom="10" right="0" weightx="0.0" weighty="0.0"/>
+                    </constraints>
+                    <properties>
+                      <text value="Histórico"/>
+                    </properties>
+                  </component>
+                </children>
+              </grid>
+              <grid id="e2f7b" binding="hTabelaPanel" layout-manager="BorderLayout" hgap="0" vgap="0">
+                <constraints border-constraint="Center"/>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <component id="37ad5" class="javax.swing.JButton" binding="editarHistorico">
+                    <constraints border-constraint="South"/>
+                    <properties>
+                      <actionCommand value="0"/>
+                      <enabled value="false"/>
+                      <label value="Excluir Histórico"/>
+                      <text value="Excluir Histórico"/>
+                      <visible value="true"/>
+                    </properties>
+                  </component>
+                  <scrollpane id="4f9e" binding="ScrollPaneHistorico">
+                    <constraints border-constraint="Center"/>
+                    <properties/>
+                    <border type="none"/>
+                    <children>
+                      <component id="a23a0" class="javax.swing.JTable" binding="historicoTable" custom-create="true">
+                        <constraints/>
+                        <properties>
+                          <autoCreateRowSorter value="true"/>
+                          <autoResizeMode value="2"/>
+                        </properties>
+                      </component>
+                    </children>
+                  </scrollpane>
+                </children>
+              </grid>
+            </children>
+          </grid>
+        </children>
+      </grid>
+    </children>
+  </grid>
+  <buttonGroups>
+    <group name="altGroup" bound="true">
+      <member id="434a0"/>
+      <member id="a95f5"/>
+      <member id="bee9a"/>
+      <member id="ad791"/>
+      <member id="8b4a1"/>
+    </group>
+  </buttonGroups>
+</form>

@@ -10,7 +10,7 @@
         <properties>
 
             <property name="jakarta.persistence.jdbc.url"
-                      value="jdbc:mysql://localhost:3306/TesteNovo?createDatabaseIfNotExist=true"/>
+                      value="jdbc:mysql://localhost:3306/DignitasDb?createDatabaseIfNotExist=true"/>
 
             <property name="jakarta.persistence.jdbc.user"
                       value="Bocchi"/>
