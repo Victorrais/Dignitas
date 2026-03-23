@@ -2,6 +2,9 @@ package data.models;
 
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 public class Question {
 
@@ -10,8 +13,17 @@ public class Question {
     private long idQuestion;
 
     @Column(nullable = false)
-    private String statement, baseText, font;
+    private String statement,font;
 
+    @Column(columnDefinition = "TEXT", nullable = false)
+    private String baseText ;
+
+    @Column
+    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Alternative> alternatives = new ArrayList<>();
+
+    @OneToMany(mappedBy = "fkQuestion", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<History> histories = new ArrayList<>();
 
     public long getIdQuestion() {
         return idQuestion;
@@ -19,6 +31,14 @@ public class Question {
 
     public void setIdQuestion(long idQuestion) {
         this.idQuestion = idQuestion;
+    }
+
+    public List<Alternative> getAlternatives() {
+        return alternatives;
+    }
+
+    public void setAlternatives(List<Alternative> alternatives) {
+        this.alternatives = alternatives;
     }
 
     public String getStatement() {
