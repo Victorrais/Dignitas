@@ -158,11 +158,17 @@ public final class Ui {
         while (root.getCause() != null && root.getCause() != root) root = root.getCause();
         String msg = e.getMessage() != null && !(e.getMessage().contains("Exception")) ? e.getMessage() : root.getMessage();
         if (msg == null) msg = root.getClass().getSimpleName();
+        String header = "Algo deu errado";
+        String friendly = constraintMessage(e);
+        if (friendly != null) {
+            msg = friendly;
+            header = "Não foi possível salvar";
+        }
 
         Alert a = new Alert(Alert.AlertType.ERROR, msg, ButtonType.OK);
         a.initOwner(owner);
         a.setTitle("Erro");
-        a.setHeaderText("Algo deu errado");
+        a.setHeaderText(header);
         StringWriter sw = new StringWriter();
         e.printStackTrace(new PrintWriter(sw));
         TextArea details = new TextArea(sw.toString());
@@ -171,5 +177,29 @@ public final class Ui {
         a.getDialogPane().setExpandableContent(details);
         a.showAndWait();
         e.printStackTrace();
+    }
+
+    /**
+     * Traduz violações de restrição do banco (registro duplicado, referência inválida) para uma frase
+     * compreensível. Retorna null se o erro não for desse tipo.
+     */
+    static String constraintMessage(Throwable e) {
+        for (Throwable t = e; t != null; t = t.getCause() == t ? null : t.getCause()) {
+            boolean constraint = t instanceof java.sql.SQLIntegrityConstraintViolationException
+                    || t instanceof org.hibernate.exception.ConstraintViolationException;
+            if (!constraint) continue;
+            String text = String.valueOf(t.getMessage()).toLowerCase(java.util.Locale.ROOT);
+            if (text.contains("uk_import_file_hash")) {
+                return "Este PDF já foi importado. Para importá-lo de novo, exclua a importação anterior na tela Importações.";
+            }
+            if (text.contains("uk_question_content_hash")) {
+                return "Já existe uma questão com o mesmo enunciado e as mesmas alternativas no banco.";
+            }
+            if (text.contains("uk_subject_name")) return "Já existe uma disciplina com esse nome.";
+            if (text.contains("duplicate")) return "Já existe um registro igual no banco de dados.";
+            return "A operação foi recusada pelo banco de dados porque violaria a integridade dos dados "
+                    + "(por exemplo, um registro relacionado não existe mais).";
+        }
+        return null;
     }
 }

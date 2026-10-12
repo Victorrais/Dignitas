@@ -10,6 +10,7 @@ import br.com.dignitas.model.QuestionDraft;
 import br.com.dignitas.persistence.Jpa;
 import br.com.dignitas.service.Dtos.ImportRow;
 import br.com.dignitas.service.Dtos.SaveSummary;
+import jakarta.persistence.EntityManager;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -23,10 +24,16 @@ public class ImportService {
 
     /**
      * Grava as questões revisadas. Rascunhos não incluídos, inválidos ou duplicados são ignorados.
+     *
+     * @throws AlreadyImportedException se o mesmo arquivo já tiver sido importado (nada é gravado)
      */
     public SaveSummary save(ExamInfo exam, String fileName, String fileHash, int pageCount, int ocrPages,
                             List<QuestionDraft> drafts) {
         return Jpa.tx(em -> {
+            // Confere de novo aqui: a tela de importação só verifica no passo 1.
+            List<ImportRow> existing = query(em, " where i.fileHash = :h", fileHash);
+            if (!existing.isEmpty()) throw new AlreadyImportedException(existing.getFirst());
+
             Exam e = exam == null || exam.isEmpty() ? null : QuestionService.findOrCreateExam(em, exam);
             ImportBatch batch = new ImportBatch();
             batch.setExam(e);
@@ -69,17 +76,19 @@ public class ImportService {
     }
 
     private List<ImportRow> query(String where, String fileHash) {
-        return Jpa.read(em -> {
-            var q = em.createQuery(
-                    "select i.id, i.fileName, e.board, e.year, e.name, i.importedAt, i.pageCount, i.ocrPages, "
-                            + "(select count(q) from Question q where q.importBatch = i) "
-                            + "from ImportBatch i left join i.exam e" + where + " order by i.importedAt desc", Object[].class);
-            if (fileHash != null) q.setParameter("h", fileHash);
-            return q.getResultList().stream()
+        return Jpa.read(em -> query(em, where, fileHash));
+    }
+
+    private static List<ImportRow> query(EntityManager em, String where, String fileHash) {
+        var q = em.createQuery(
+                "select i.id, i.fileName, e.board, e.year, e.name, i.importedAt, i.pageCount, i.ocrPages, "
+                        + "(select count(q) from Question q where q.importBatch = i) "
+                        + "from ImportBatch i left join i.exam e" + where + " order by i.importedAt desc", Object[].class);
+        if (fileHash != null) q.setParameter("h", fileHash);
+        return q.getResultList().stream()
                 .map(r -> new ImportRow((Long) r[0], (String) r[1], (String) r[2], (Integer) r[3], (String) r[4],
                         (LocalDateTime) r[5], (Integer) r[6], (Integer) r[7], ((Number) r[8]).longValue()))
-                    .toList();
-        });
+                .toList();
     }
 
     /** Exclui a importação e, em cascata, suas questões, alternativas e respostas. */

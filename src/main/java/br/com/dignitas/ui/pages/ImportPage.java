@@ -333,7 +333,10 @@ public class ImportPage extends DbPage {
             return r;
         }, r -> {
             try {
-                review = new ReviewPane(r, exam, this::finished, this::discard);
+                review = new ReviewPane(r, exam, this::finished, this::discard, () -> {
+                    discard();
+                    app.go(MainWindow.Nav.IMPORTS);
+                });
                 showStep(2);
             } catch (Exception e) {
                 Ui.showError(e);

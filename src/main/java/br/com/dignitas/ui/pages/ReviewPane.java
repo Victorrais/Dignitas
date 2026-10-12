@@ -8,6 +8,7 @@ import br.com.dignitas.model.ExamInfo;
 import br.com.dignitas.model.QuestionDraft;
 import br.com.dignitas.model.QuestionDraft.Region;
 import br.com.dignitas.model.Texts;
+import br.com.dignitas.service.AlreadyImportedException;
 import br.com.dignitas.service.Dtos.SaveSummary;
 import br.com.dignitas.ui.Async;
 import br.com.dignitas.ui.QuestionEditor;
@@ -40,6 +41,9 @@ class ReviewPane extends BorderPane {
     private final ExamInfo exam;
     private final Runnable onSaved;
     private final Runnable onDiscard;
+    private final Runnable onShowImports;
+    private final Button saveButton = Ui.button("Salvar questões selecionadas", Feather.SAVE, Styles.ACCENT);
+    private final Button discardButton = Ui.button("Descartar importação", Feather.X, Styles.BUTTON_OUTLINED);
     private final PdfPageRenderer renderer;
 
     private final ListView<QuestionDraft> list = new ListView<>();
@@ -53,11 +57,13 @@ class ReviewPane extends BorderPane {
     private ScrollPane viewerScroll;
     private boolean fitPending = true;
 
-    ReviewPane(ImportPipeline.Result result, ExamInfo exam, Runnable onSaved, Runnable onDiscard) throws IOException {
+    ReviewPane(ImportPipeline.Result result, ExamInfo exam, Runnable onSaved, Runnable onDiscard,
+               Runnable onShowImports) throws IOException {
         this.result = result;
         this.exam = exam;
         this.onSaved = onSaved;
         this.onDiscard = onDiscard;
+        this.onShowImports = onShowImports;
         this.renderer = new PdfPageRenderer(result.file());
 
         list.getItems().setAll(result.questions());
@@ -366,13 +372,13 @@ class ReviewPane extends BorderPane {
     // ---------- Rodapé ----------
 
     private HBox footer() {
-        Button discard = Ui.button("Descartar importação", Feather.X, Styles.BUTTON_OUTLINED);
+        Button discard = discardButton;
         discard.setOnAction(e -> {
             if (Ui.confirm("Descartar importação?", "As questões extraídas e suas correções serão perdidas.", "Descartar")) {
                 onDiscard.run();
             }
         });
-        Button save = Ui.button("Salvar questões selecionadas", Feather.SAVE, Styles.ACCENT);
+        Button save = saveButton;
         save.setOnAction(e -> save());
         HBox f = new HBox(12, discard, Ui.hspacer(), selectedCount, save);
         f.setAlignment(Pos.CENTER_LEFT);
@@ -399,11 +405,26 @@ class ReviewPane extends BorderPane {
                         + "ignoradas. Deseja salvar as demais?", "Salvar as válidas")) {
             return;
         }
+        // Impede um segundo clique (ou duplo clique) de gravar o mesmo arquivo de novo.
+        setSaving(true);
         Async.run(() -> Services.IMPORTS.save(exam, result.file().getName(), result.fileHash(), result.pageCount(),
                 result.ocrPages(), drafts), (SaveSummary s) -> {
             Ui.info("Importação concluída", s.saved() + " questões foram salvas no banco."
                     + (s.skippedDuplicates() > 0 ? " " + s.skippedDuplicates() + " duplicadas foram ignoradas." : ""));
             onSaved.run();
+        }, err -> {
+            setSaving(false);
+            if (err instanceof AlreadyImportedException already) {
+                if (Ui.confirm("Arquivo já importado", already.getMessage(), "Ver importações")) onShowImports.run();
+            } else {
+                Ui.showError(err);
+            }
         });
+    }
+
+    private void setSaving(boolean saving) {
+        saveButton.setDisable(saving);
+        discardButton.setDisable(saving);
+        saveButton.setText(saving ? "Salvando…" : "Salvar questões selecionadas");
     }
 }

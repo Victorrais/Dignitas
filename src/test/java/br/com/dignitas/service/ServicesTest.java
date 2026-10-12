@@ -124,6 +124,22 @@ class ServicesTest {
     }
 
     @Test
+    void savingTheSameFileTwiceIsRejectedWithoutWritingAnything() {
+        ExamInfo exam = new ExamInfo("Simulado", "Banca", 2025, null);
+        SaveSummary first = imports.save(exam, "prova.pdf", "hash-igual", 3, 0, List.of(draft("Primeira questão", null, 0)));
+        assertEquals(1, first.saved());
+
+        // Segunda gravação (ex.: duplo clique em "Salvar"), agora com outras questões.
+        AlreadyImportedException e = assertThrows(AlreadyImportedException.class, () ->
+                imports.save(exam, "prova.pdf", "hash-igual", 3, 0, List.of(draft("Outra questão", null, 1))));
+        assertEquals(1, e.existing().questions());
+        assertTrue(e.getMessage().contains("já foi importado"), e.getMessage());
+
+        assertEquals(1, questions.count(), "a transação recusada não grava questões");
+        assertEquals(1, imports.list().size());
+    }
+
+    @Test
     void imagesOfAlternativesAndBaseTextArePersisted() {
         byte[] png = {(byte) 0x89, 'P', 'N', 'G', 1, 2, 3};
         QuestionDraft d = new QuestionDraft();
