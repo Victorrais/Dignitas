@@ -10,7 +10,10 @@ import br.com.dignitas.ui.pages.*;
 import javafx.application.Application;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
+import br.com.dignitas.app.AppConfig;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.*;
@@ -53,11 +56,60 @@ public class MainWindow {
     private final Label statusText = new Label("Conectando…");
     private Nav current;
     private volatile boolean connected;
+    private final javafx.beans.property.BooleanProperty collapsed =
+            new javafx.beans.property.SimpleBooleanProperty(AppConfig.get().sidebarCollapsed());
+    private VBox side;
 
     public MainWindow() {
         root.getStyleClass().add("app-root");
+        Ui.applyScale(root);
         root.setLeft(sidebar());
         root.setCenter(content);
+        collapsed.addListener((o, a, b) -> {
+            applyCollapsed(b);
+            AppConfig.get().setSidebarCollapsed(b);
+            AppConfig.get().saveQuietly();
+        });
+        applyCollapsed(collapsed.get());
+    }
+
+    /** Ctrl+B recolhe a barra lateral; Ctrl + / Ctrl − / Ctrl 0 ajustam o tamanho da interface. */
+    public void installShortcuts(javafx.scene.Scene scene) {
+        var keys = scene.getAccelerators();
+        keys.put(javafx.scene.input.KeyCombination.keyCombination("Shortcut+B"), this::toggleSidebar);
+        keys.put(javafx.scene.input.KeyCombination.keyCombination("Shortcut+Equals"), () -> zoom(+0.05));
+        keys.put(javafx.scene.input.KeyCombination.keyCombination("Shortcut+Add"), () -> zoom(+0.05));
+        keys.put(javafx.scene.input.KeyCombination.keyCombination("Shortcut+Minus"), () -> zoom(-0.05));
+        keys.put(javafx.scene.input.KeyCombination.keyCombination("Shortcut+Subtract"), () -> zoom(-0.05));
+        keys.put(javafx.scene.input.KeyCombination.keyCombination("Shortcut+Digit0"), () -> setScale(0.85));
+    }
+
+    public void toggleSidebar() {
+        collapsed.set(!collapsed.get());
+    }
+
+    private void zoom(double delta) {
+        setScale(Math.round((Ui.scale() + delta) * 100) / 100.0);
+    }
+
+    /** Muda a escala da interface (0,70 a 1,50) e grava a preferência. */
+    public static void setScale(double scale) {
+        double s = Math.max(0.7, Math.min(1.5, scale));
+        Ui.scaleProperty().set(s);
+        AppConfig.get().setUiScale(s);
+        AppConfig.get().saveQuietly();
+    }
+
+    private void applyCollapsed(boolean c) {
+        side.pseudoClassStateChanged(javafx.css.PseudoClass.getPseudoClass("collapsed"), c);
+        for (ToggleButton b : navButtons.values()) {
+            b.setContentDisplay(c ? javafx.scene.control.ContentDisplay.GRAPHIC_ONLY : javafx.scene.control.ContentDisplay.LEFT);
+            b.setAlignment(c ? Pos.CENTER : Pos.CENTER_LEFT);
+        }
+        side.lookupAll(".collapsible").forEach(n -> {
+            n.setVisible(!c);
+            n.setManaged(!c);
+        });
     }
 
     public Parent root() {
@@ -66,16 +118,19 @@ public class MainWindow {
 
     private VBox sidebar() {
         StackPane logo = new StackPane(Ui.icon(Feather.BOOK_OPEN, 18));
-        logo.getStyleClass().add("brand-logo");
+        logo.getStyleClass().addAll("brand-logo", "collapsible");
         VBox names = new VBox(0, Ui.label("Dignitas", "brand-name"), Ui.label("Questões de concursos", "brand-tagline"));
-        HBox brand = new HBox(logo, names);
+        names.getStyleClass().add("collapsible");
+        Button toggle = Ui.iconButton(Feather.SIDEBAR, "Recolher/expandir a barra lateral (Ctrl+B)");
+        toggle.setOnAction(e -> toggleSidebar());
+        HBox brand = new HBox(toggle, logo, names);
         brand.getStyleClass().add("brand");
 
         VBox nav = new VBox(2);
         ToggleGroup group = new ToggleGroup();
-        nav.getChildren().add(Ui.label("ESTUDAR", "nav-section"));
+        nav.getChildren().add(Ui.label("ESTUDAR", "nav-section", "collapsible"));
         for (Nav n : Nav.values()) {
-            if (n == Nav.BANK) nav.getChildren().add(Ui.label("GERENCIAR", "nav-section"));
+            if (n == Nav.BANK) nav.getChildren().add(Ui.label("GERENCIAR", "nav-section", "collapsible"));
             if (n == Nav.SETTINGS) continue;
             nav.getChildren().add(navButton(n, group));
         }
@@ -84,13 +139,14 @@ public class MainWindow {
         VBox.setVgrow(spacer, Priority.ALWAYS);
 
         statusDot.getStyleClass().add("status-dot");
-        statusText.getStyleClass().add("hint");
+        statusText.getStyleClass().addAll("hint", "collapsible");
         statusText.setWrapText(true);
         HBox status = new HBox(statusDot, statusText);
         status.getStyleClass().add("connection-status");
         status.setOnMouseClicked(e -> go(Nav.SETTINGS));
 
-        VBox side = new VBox(brand, nav, spacer, navButton(Nav.SETTINGS, group), status);
+        Tooltip.install(status, new Tooltip("Banco de dados"));
+        side = new VBox(brand, nav, spacer, navButton(Nav.SETTINGS, group), status);
         side.getStyleClass().add("sidebar");
         side.setSpacing(6);
         return side;
@@ -99,6 +155,7 @@ public class MainWindow {
     private ToggleButton navButton(Nav n, ToggleGroup group) {
         ToggleButton b = new ToggleButton(n.label, Ui.icon(n.icon, 18));
         b.getStyleClass().add("nav-item");
+        b.setTooltip(new Tooltip(n.label));
         b.setToggleGroup(group);
         b.setMaxWidth(Double.MAX_VALUE);
         b.setAlignment(Pos.CENTER_LEFT);

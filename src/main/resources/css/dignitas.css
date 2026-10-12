@@ -3,9 +3,10 @@
  * As cores vêm das variáveis do tema (-color-*), então claro e escuro funcionam juntos.
  */
 
+/* O tamanho base do texto é definido no código (Ui.applyScale, Configurações > Tamanho da interface).
+   Tudo abaixo usa "em" para acompanhar essa escala. */
 .root {
     -fx-font-family: "Segoe UI", "Inter", "Helvetica Neue", sans-serif;
-    -fx-font-size: 14px;
 }
 
 /* ---------- Estrutura ---------- */
@@ -18,14 +19,29 @@
     -fx-background-color: -color-bg-default;
     -fx-border-color: transparent -color-border-default transparent transparent;
     -fx-border-width: 0 1 0 0;
-    -fx-padding: 20 12 16 12;
+    -fx-padding: 1.429em 0.857em 1.143em 0.857em;
     -fx-spacing: 4;
-    -fx-pref-width: 236;
-    -fx-min-width: 236;
+    -fx-pref-width: 16.857em;
+    -fx-min-width: 16.857em;
+}
+
+/* Barra lateral recolhida: só ícones. */
+.sidebar:collapsed {
+    -fx-pref-width: 4.571em;
+    -fx-min-width: 4.571em;
+    -fx-padding: 1.429em 0.571em 1.143em 0.571em;
+}
+
+.sidebar:collapsed .nav-item {
+    -fx-padding: 0.643em;
+}
+
+.sidebar:collapsed .connection-status {
+    -fx-alignment: center;
 }
 
 .brand {
-    -fx-padding: 0 8 20 8;
+    -fx-padding: 0 0.571em 1.429em 0.571em;
     -fx-spacing: 10;
     -fx-alignment: center-left;
 }
@@ -33,10 +49,10 @@
 .brand-logo {
     -fx-background-color: -color-accent-emphasis;
     -fx-background-radius: 10;
-    -fx-min-width: 36;
-    -fx-min-height: 36;
-    -fx-max-width: 36;
-    -fx-max-height: 36;
+    -fx-min-width: 2.571em;
+    -fx-min-height: 2.571em;
+    -fx-max-width: 2.571em;
+    -fx-max-height: 2.571em;
     -fx-alignment: center;
 }
 
@@ -45,27 +61,27 @@
 }
 
 .brand-name {
-    -fx-font-size: 18px;
+    -fx-font-size: 1.286em;
     -fx-font-weight: bold;
 }
 
 .brand-tagline {
     -fx-text-fill: -color-fg-muted;
-    -fx-font-size: 12px;
+    -fx-font-size: 0.857em;
 }
 
 .nav-section {
     -fx-text-fill: -color-fg-subtle;
-    -fx-font-size: 11px;
+    -fx-font-size: 0.786em;
     -fx-font-weight: bold;
-    -fx-padding: 14 10 6 10;
+    -fx-padding: 1em 0.714em 0.429em 0.714em;
 }
 
 .nav-item {
     -fx-background-color: transparent;
     -fx-background-radius: 8;
     -fx-border-width: 0;
-    -fx-padding: 9 12 9 12;
+    -fx-padding: 0.643em 0.857em 0.643em 0.857em;
     -fx-graphic-text-gap: 12;
     -fx-alignment: center-left;
     -fx-max-width: infinity;
@@ -93,7 +109,7 @@
 }
 
 .connection-status {
-    -fx-padding: 10;
+    -fx-padding: 0.714em;
     -fx-spacing: 8;
     -fx-alignment: center-left;
     -fx-background-color: -color-bg-subtle;
@@ -101,10 +117,10 @@
 }
 
 .status-dot {
-    -fx-min-width: 8;
-    -fx-min-height: 8;
-    -fx-max-width: 8;
-    -fx-max-height: 8;
+    -fx-min-width: 0.571em;
+    -fx-min-height: 0.571em;
+    -fx-max-width: 0.571em;
+    -fx-max-height: 0.571em;
     -fx-background-radius: 4;
     -fx-background-color: -color-danger-emphasis;
 }
@@ -114,7 +130,7 @@
 }
 
 .page {
-    -fx-padding: 28 32 28 32;
+    -fx-padding: 2em 2.286em 2em 2.286em;
     -fx-spacing: 20;
 }
 
@@ -124,7 +140,7 @@
 }
 
 .page-title {
-    -fx-font-size: 26px;
+    -fx-font-size: 1.857em;
     -fx-font-weight: bold;
 }
 
@@ -139,36 +155,36 @@
     -fx-background-radius: 12;
     -fx-border-color: -color-border-default;
     -fx-border-radius: 12;
-    -fx-padding: 20;
+    -fx-padding: 1.429em;
     -fx-spacing: 12;
 }
 
 .card-title {
-    -fx-font-size: 16px;
+    -fx-font-size: 1.143em;
     -fx-font-weight: bold;
 }
 
 .stat-card {
     -fx-spacing: 6;
-    -fx-min-width: 180;
+    -fx-min-width: 12.857em;
 }
 
 .stat-value {
-    -fx-font-size: 28px;
+    -fx-font-size: 2em;
     -fx-font-weight: bold;
 }
 
 .stat-label {
     -fx-text-fill: -color-fg-muted;
-    -fx-font-size: 13px;
+    -fx-font-size: 0.929em;
 }
 
 .stat-icon {
     -fx-background-radius: 8;
-    -fx-min-width: 34;
-    -fx-min-height: 34;
-    -fx-max-width: 34;
-    -fx-max-height: 34;
+    -fx-min-width: 2.429em;
+    -fx-min-height: 2.429em;
+    -fx-max-width: 2.429em;
+    -fx-max-height: 2.429em;
     -fx-alignment: center;
     -fx-background-color: -color-accent-subtle;
 }
@@ -187,7 +203,7 @@
 .empty-state {
     -fx-alignment: center;
     -fx-spacing: 12;
-    -fx-padding: 48 24 48 24;
+    -fx-padding: 3.429em 1.714em 3.429em 1.714em;
 }
 
 .empty-state .ikonli-font-icon {
@@ -195,7 +211,7 @@
 }
 
 .empty-title {
-    -fx-font-size: 18px;
+    -fx-font-size: 1.286em;
     -fx-font-weight: bold;
 }
 
@@ -204,8 +220,8 @@
 .badge {
     -fx-background-color: -color-neutral-muted;
     -fx-background-radius: 999;
-    -fx-padding: 2 9 2 9;
-    -fx-font-size: 12px;
+    -fx-padding: 0.143em 0.643em 0.143em 0.643em;
+    -fx-font-size: 0.857em;
     -fx-text-fill: -color-fg-default;
 }
 
@@ -221,23 +237,23 @@
     -fx-background-radius: 0 8 8 0;
     -fx-border-color: transparent transparent transparent -color-accent-emphasis;
     -fx-border-width: 0 0 0 3;
-    -fx-padding: 14 16 14 16;
+    -fx-padding: 1em 1.143em 1em 1.143em;
     -fx-spacing: 8;
 }
 
 .base-text-body {
-    -fx-font-size: 14.5px;
+    -fx-font-size: 1.036em;
     -fx-line-spacing: 3;
 }
 
 .source {
     -fx-text-fill: -color-fg-muted;
-    -fx-font-size: 12.5px;
+    -fx-font-size: 0.893em;
     -fx-font-style: italic;
 }
 
 .statement {
-    -fx-font-size: 16px;
+    -fx-font-size: 1.143em;
     -fx-line-spacing: 2;
 }
 
@@ -247,7 +263,7 @@
     -fx-border-color: -color-border-default;
     -fx-border-radius: 10;
     -fx-border-width: 1.5;
-    -fx-padding: 12 14 12 14;
+    -fx-padding: 0.857em 1em 0.857em 1em;
     -fx-cursor: hand;
 }
 
@@ -261,10 +277,10 @@
 }
 
 .alt-letter {
-    -fx-min-width: 30;
-    -fx-min-height: 30;
-    -fx-max-width: 30;
-    -fx-max-height: 30;
+    -fx-min-width: 2.143em;
+    -fx-min-height: 2.143em;
+    -fx-max-width: 2.143em;
+    -fx-max-height: 2.143em;
     -fx-background-radius: 15;
     -fx-background-color: -color-bg-subtle;
     -fx-border-color: -color-border-default;
@@ -280,7 +296,7 @@
 }
 
 .alt-text {
-    -fx-font-size: 14.5px;
+    -fx-font-size: 1.036em;
 }
 
 .alt-button.correct {
@@ -317,12 +333,12 @@
 }
 
 .cell-title {
-    -fx-font-size: 14px;
+    -fx-font-size: 1em;
 }
 
 .cell-subtitle {
     -fx-text-fill: -color-fg-muted;
-    -fx-font-size: 12px;
+    -fx-font-size: 0.857em;
 }
 
 .pager {
@@ -343,16 +359,16 @@
 }
 
 .step-number {
-    -fx-min-width: 26;
-    -fx-min-height: 26;
-    -fx-max-width: 26;
-    -fx-max-height: 26;
+    -fx-min-width: 1.857em;
+    -fx-min-height: 1.857em;
+    -fx-max-width: 1.857em;
+    -fx-max-height: 1.857em;
     -fx-background-radius: 13;
     -fx-alignment: center;
     -fx-background-color: -color-bg-subtle;
     -fx-border-color: -color-border-default;
     -fx-border-radius: 13;
-    -fx-font-size: 12px;
+    -fx-font-size: 0.857em;
     -fx-font-weight: bold;
 }
 
@@ -372,20 +388,20 @@
 }
 
 .step-line {
-    -fx-min-width: 40;
-    -fx-max-height: 1;
-    -fx-min-height: 1;
+    -fx-min-width: 2.857em;
+    -fx-max-height: 0.071em;
+    -fx-min-height: 0.071em;
     -fx-background-color: -color-border-default;
 }
 
 .form-label {
     -fx-font-weight: bold;
-    -fx-font-size: 13px;
+    -fx-font-size: 0.929em;
 }
 
 .hint {
     -fx-text-fill: -color-fg-muted;
-    -fx-font-size: 12px;
+    -fx-font-size: 0.857em;
 }
 
 .error-text {
@@ -406,11 +422,11 @@
 
 .review-cell {
     -fx-spacing: 6;
-    -fx-padding: 4 2 4 2;
+    -fx-padding: 0.286em 0.143em 0.286em 0.143em;
 }
 
 .review-list .list-cell {
-    -fx-padding: 10 12 10 12;
+    -fx-padding: 0.714em 0.857em 0.714em 0.857em;
 }
 
 .review-list .list-cell:filled:selected {

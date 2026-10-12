@@ -28,7 +28,11 @@ Em desenvolvimento (versão 2.0: reescrita em JavaFX).
 - **Banco de questões:** busca, filtros, ordenação, cadastro manual, edição e exclusão.
 - **Importar PDF:** assistente em 3 passos (arquivo e concurso → leitura → revisão).
 - **Importações:** lista dos PDFs importados; excluir uma importação remove todas as questões dela.
-- **Configurações:** conexão com o MySQL, pacote de OCR e tema claro ou escuro.
+- **Configurações:** conexão com o MySQL, pacote de OCR, tema claro ou escuro e tamanho da interface.
+
+Atalhos: **Ctrl+B** recolhe/expande a barra lateral; **Ctrl +** / **Ctrl −** ajustam o tamanho da interface
+(**Ctrl 0** volta ao padrão de 85%). Ao resolver questões, os botões de texto e imagem no topo da questão
+ocultam o material de apoio, e um clique numa imagem a abre ampliada.
 
 ## Como a extração funciona
 

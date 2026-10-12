@@ -24,7 +24,37 @@ public final class Ui {
 
     private static Window owner;
 
+    /** Tamanho base do texto em px quando a escala é 1.0. Todo o CSS do app é relativo a ele (em). */
+    public static final double BASE_FONT = 14;
+    /** Escala atual da interface; telas e diálogos acompanham as mudanças. */
+    private static final javafx.beans.property.DoubleProperty SCALE =
+            new javafx.beans.property.SimpleDoubleProperty(br.com.dignitas.app.AppConfig.get().uiScale());
+
     private Ui() {
+    }
+
+    public static javafx.beans.property.DoubleProperty scaleProperty() {
+        return SCALE;
+    }
+
+    public static double scale() {
+        return SCALE.get();
+    }
+
+    /** Aplica (e mantém atualizado) o tamanho de fonte base num nó raiz: janela principal ou diálogo. */
+    public static void applyScale(javafx.scene.Parent root) {
+        root.styleProperty().bind(javafx.beans.binding.Bindings.createStringBinding(
+                () -> String.format(java.util.Locale.ROOT, "-fx-font-size: %.2fpx;", BASE_FONT * SCALE.get()), SCALE));
+    }
+
+    /**
+     * Largura de exibição de uma imagem recortada do PDF (150 dpi): reduzida para algo próximo do tamanho
+     * impresso e acompanhando a escala da interface, sem passar da largura disponível.
+     */
+    public static javafx.beans.binding.DoubleBinding imageWidth(javafx.scene.image.Image img,
+                                                                 javafx.beans.value.ObservableDoubleValue available) {
+        return javafx.beans.binding.Bindings.createDoubleBinding(
+                () -> Math.max(40, Math.min(img.getWidth() * 0.7 * SCALE.get(), available.get())), SCALE, available);
     }
 
     static void setOwner(Window w) {
@@ -37,7 +67,9 @@ public final class Ui {
 
     public static FontIcon icon(Ikon ikon, int size) {
         FontIcon i = new FontIcon(ikon);
-        i.setIconSize(size);
+        // Acompanha a escala da interface (tamanhos pensados para 14 px).
+        i.iconSizeProperty().bind(javafx.beans.binding.Bindings.createIntegerBinding(
+                () -> (int) Math.round(size * SCALE.get()), SCALE));
         return i;
     }
 
@@ -134,10 +166,36 @@ public final class Ui {
         return data == null ? null : new Image(new ByteArrayInputStream(data));
     }
 
+    /** Faz a imagem abrir ampliada (tamanho original, com rolagem) ao ser clicada. */
+    public static void zoomOnClick(javafx.scene.image.ImageView view) {
+        view.setCursor(javafx.scene.Cursor.HAND);
+        Tooltip.install(view, new Tooltip("Clique para ampliar"));
+        view.setOnMouseClicked(e -> {
+            Image img = view.getImage();
+            if (img == null) return;
+            javafx.scene.image.ImageView full = new javafx.scene.image.ImageView(img);
+            full.setPreserveRatio(true);
+            ScrollPane sp = new ScrollPane(new StackPane(full));
+            sp.setPannable(true);
+            Dialog<Void> d = new Dialog<>();
+            d.initOwner(owner);
+            d.setTitle("Imagem");
+            d.setResizable(true);
+            d.getDialogPane().setContent(sp);
+            d.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+            applyScale(d.getDialogPane());
+            javafx.geometry.Rectangle2D screen = javafx.stage.Screen.getPrimary().getVisualBounds();
+            sp.setPrefSize(Math.min(img.getWidth() + 24, screen.getWidth() * 0.85),
+                    Math.min(img.getHeight() + 24, screen.getHeight() * 0.8));
+            d.show();
+        });
+    }
+
     public static boolean confirm(String title, String text, String okText) {
         Alert a = new Alert(Alert.AlertType.CONFIRMATION, text, new ButtonType(okText, ButtonBar.ButtonData.OK_DONE),
                 ButtonType.CANCEL);
         a.initOwner(owner);
+        applyScale(a.getDialogPane());
         a.setTitle(title);
         a.setHeaderText(title);
         Optional<ButtonType> r = a.showAndWait();
@@ -147,6 +205,7 @@ public final class Ui {
     public static void info(String title, String text) {
         Alert a = new Alert(Alert.AlertType.INFORMATION, text, ButtonType.OK);
         a.initOwner(owner);
+        applyScale(a.getDialogPane());
         a.setTitle(title);
         a.setHeaderText(title);
         a.showAndWait();
@@ -167,6 +226,7 @@ public final class Ui {
 
         Alert a = new Alert(Alert.AlertType.ERROR, msg, ButtonType.OK);
         a.initOwner(owner);
+        applyScale(a.getDialogPane());
         a.setTitle("Erro");
         a.setHeaderText(header);
         StringWriter sw = new StringWriter();

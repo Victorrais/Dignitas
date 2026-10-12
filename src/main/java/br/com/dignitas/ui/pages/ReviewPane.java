@@ -79,7 +79,7 @@ class ReviewPane extends BorderPane {
         setTop(summary());
         SplitPane split = new SplitPane(viewer(), questionsPanel());
         split.setDividerPositions(0.48);
-        split.setStyle("-fx-background-color: transparent; -fx-padding: 12 0 12 0;");
+        split.setStyle("-fx-background-color: transparent; -fx-padding: 0.857em 0 0.857em 0;");
         setCenter(split);
         setBottom(footer());
 
@@ -152,7 +152,7 @@ class ReviewPane extends BorderPane {
         });
         VBox.setVgrow(sp, Priority.ALWAYS);
         VBox box = Ui.card(toolbar, sp);
-        box.setStyle("-fx-padding: 12;");
+        box.setStyle("-fx-padding: 0.857em;");
         return box;
     }
 
@@ -239,7 +239,7 @@ class ReviewPane extends BorderPane {
         });
         VBox.setVgrow(list, Priority.ALWAYS);
         VBox box = Ui.card(toolbar, list);
-        box.setStyle("-fx-padding: 12;");
+        box.setStyle("-fx-padding: 0.857em;");
         return box;
     }
 
@@ -357,7 +357,7 @@ class ReviewPane extends BorderPane {
             }
             for (String err : errors) {
                 Label l = Ui.wrapped(err, "error-text");
-                l.setStyle("-fx-font-size: 12px;");
+                l.setStyle("-fx-font-size: 0.857em;");
                 body.getChildren().add(l);
             }
             HBox.setHgrow(body, Priority.ALWAYS);

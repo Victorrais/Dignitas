@@ -10,6 +10,11 @@ import br.com.dignitas.service.Dtos.QuestionFilter;
 import br.com.dignitas.service.Dtos.Sort;
 import br.com.dignitas.service.Dtos.Status;
 import br.com.dignitas.ui.*;
+import br.com.dignitas.app.AppConfig;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.css.PseudoClass;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -44,12 +49,23 @@ public class PracticePage extends DbPage {
     private boolean answered;
     private Long explicitQuestion;
     private Button answerButton;
+    /** Preferências de exibição do material de apoio (valem para todas as questões e ficam salvas). */
+    private final BooleanProperty showText = new SimpleBooleanProperty(AppConfig.get().showSupportText());
+    private final BooleanProperty showImages = new SimpleBooleanProperty(AppConfig.get().showSupportImages());
     private Button nextButton;
 
     public PracticePage(MainWindow app) {
         super(app);
         status.getItems().setAll(Status.values());
         status.setValue(Status.UNANSWERED);
+        showText.addListener((o, a, b) -> {
+            AppConfig.get().setShowSupportText(b);
+            AppConfig.get().saveQuietly();
+        });
+        showImages.addListener((o, a, b) -> {
+            AppConfig.get().setShowSupportImages(b);
+            AppConfig.get().saveQuietly();
+        });
     }
 
     /** Usado pelos atalhos do Início ("Refazer as que errei" etc.). */
@@ -66,7 +82,7 @@ public class PracticePage extends DbPage {
         HBox filters = new HBox(10, subject, board, year, status, apply);
         filters.setAlignment(Pos.CENTER_LEFT);
         VBox filterCard = Ui.card(filters);
-        filterCard.setStyle("-fx-padding: 14 16 14 16;");
+        filterCard.setStyle("-fx-padding: 1em 1.143em 1em 1.143em;");
 
         VBox page = new VBox(20, Ui.header("Resolver questões", subtitle), filterCard, holder);
         ScrollPane sp = Ui.scrollPage(page);
@@ -175,24 +191,58 @@ public class PracticePage extends DbPage {
         });
         Button edit = Ui.iconButton(Feather.EDIT_2, "Editar questão");
         edit.setOnAction(e -> QuestionEditor.editPersisted(q.getId(), () -> openQuestion(q.getId())));
-        meta.getChildren().addAll(Ui.hspacer(), edit, flag);
+        meta.getChildren().add(Ui.hspacer());
+        BaseText support = q.getBaseText();
+        boolean hasText = support != null && support.getContent() != null && !support.getContent().isBlank();
+        boolean hasImage = q.getImage() != null || support != null && support.getImage() != null;
+        if (hasText) meta.getChildren().add(supportToggle(Feather.FILE_TEXT, "texto de apoio", showText));
+        if (hasImage) meta.getChildren().add(supportToggle(Feather.IMAGE, "imagens de apoio", showImages));
+        meta.getChildren().addAll(edit, flag);
 
         VBox card = Ui.card(meta);
         card.setSpacing(16);
 
         BaseText bt = q.getBaseText();
         if (bt != null) {
-            VBox base = new VBox(Ui.label("TEXTO DE APOIO", "nav-section"));
-            ((Label) base.getChildren().getFirst()).setStyle("-fx-padding: 0;");
+            Label title = Ui.label("TEXTO DE APOIO", "nav-section");
+            title.setStyle("-fx-padding: 0;");
+            VBox base = new VBox(title);
+            BooleanBinding anyVisible = Bindings.createBooleanBinding(() -> false);
             if (bt.getContent() != null && !bt.getContent().isBlank()) {
-                base.getChildren().add(Ui.wrapped(bt.getContent(), "base-text-body"));
+                Node text = Ui.wrapped(bt.getContent(), "base-text-body");
+                bindVisible(text, showText);
+                base.getChildren().add(text);
+                anyVisible = anyVisible.or(showText);
             }
-            if (bt.getImage() != null) base.getChildren().add(picture(bt.getImage(), card, 76));
-            if (bt.getSource() != null) base.getChildren().add(Ui.wrapped(bt.getSource(), "source"));
+            if (bt.getImage() != null) {
+                Node img = picture(bt.getImage(), card, 76);
+                bindVisible(img, showImages);
+                base.getChildren().add(img);
+                anyVisible = anyVisible.or(showImages);
+            }
+            if (bt.getSource() != null) {
+                Node source = Ui.wrapped(bt.getSource(), "source");
+                bindVisible(source, anyVisible);
+                base.getChildren().add(source);
+            }
+            BooleanBinding shown = anyVisible;
+            title.textProperty().bind(Bindings.when(shown).then("TEXTO DE APOIO")
+                    .otherwise("TEXTO DE APOIO (oculto · clique para mostrar)"));
+            title.setCursor(javafx.scene.Cursor.HAND);
+            title.setOnMouseClicked(e -> {
+                if (!shown.get()) {
+                    showText.set(true);
+                    showImages.set(true);
+                }
+            });
             base.getStyleClass().add("base-text");
             card.getChildren().add(base);
         }
-        if (q.getImage() != null) card.getChildren().add(picture(q.getImage(), card, 44));
+        if (q.getImage() != null) {
+            Node img = picture(q.getImage(), card, 44);
+            bindVisible(img, showImages);
+            card.getChildren().add(img);
+        }
         if (!q.getStatement().isBlank()) card.getChildren().add(Ui.wrapped(q.getStatement(), "statement"));
 
         VBox alts = new VBox(10);
@@ -225,11 +275,27 @@ public class PracticePage extends DbPage {
 
     /** Alternativa como cartão clicável (um HBox quebra o texto longo corretamente). */
     /** Imagem no tamanho natural, reduzida para caber na largura do cartão. */
+    /** Botão de ícone que mostra/oculta parte do material de apoio. */
+    private static ToggleButton supportToggle(org.kordamp.ikonli.Ikon icon, String what, BooleanProperty visible) {
+        ToggleButton t = new ToggleButton(null, Ui.icon(icon, 16));
+        t.getStyleClass().addAll(Styles.BUTTON_ICON);
+        t.selectedProperty().bindBidirectional(visible);
+        Tooltip tip = new Tooltip();
+        tip.textProperty().bind(Bindings.when(visible).then("Ocultar " + what).otherwise("Mostrar " + what));
+        t.setTooltip(tip);
+        return t;
+    }
+
+    private static void bindVisible(Node n, javafx.beans.value.ObservableBooleanValue visible) {
+        n.visibleProperty().bind(visible);
+        n.managedProperty().bind(visible);
+    }
+
     private static Node picture(byte[] data, VBox card, double margin) {
         ImageView iv = new ImageView(Ui.image(data));
         iv.setPreserveRatio(true);
-        iv.fitWidthProperty().bind(javafx.beans.binding.Bindings.min(iv.getImage().getWidth(),
-                card.widthProperty().subtract(margin)));
+        iv.fitWidthProperty().bind(Ui.imageWidth(iv.getImage(), card.widthProperty().subtract(margin)));
+        Ui.zoomOnClick(iv);
         iv.getStyleClass().add("question-image");
         StackPane frame = new StackPane(iv);
         frame.setAlignment(Pos.CENTER_LEFT);
@@ -247,7 +313,10 @@ public class PracticePage extends DbPage {
         if (a.getImage() != null) {
             ImageView iv = new ImageView(Ui.image(a.getImage()));
             iv.setPreserveRatio(true);
-            iv.setFitWidth(Math.min(iv.getImage().getWidth(), 420));
+            iv.fitWidthProperty().bind(Ui.imageWidth(iv.getImage(), Ui.scaleProperty().multiply(480)));
+            // Ampliar sem marcar a alternativa: o clique na imagem não chega ao cartão.
+            Ui.zoomOnClick(iv);
+            iv.addEventHandler(javafx.scene.input.MouseEvent.MOUSE_CLICKED, javafx.event.Event::consume);
             body.getChildren().add(iv);
         }
         body.setMaxWidth(Double.MAX_VALUE);
@@ -298,7 +367,7 @@ public class PracticePage extends DbPage {
         }
         Label msg = Ui.label(text, "badge", kind);
         msg.setGraphic(Ui.icon(r.correct() ? Feather.CHECK_CIRCLE : Feather.X_CIRCLE, 16));
-        msg.setStyle("-fx-font-size: 14px; -fx-padding: 10 16 10 16; -fx-background-radius: 8;");
+        msg.setStyle("-fx-font-size: 1em; -fx-padding: 0.714em 1.143em 0.714em 1.143em; -fx-background-radius: 8;");
         feedback.getChildren().setAll(msg);
         nextButton.setVisible(true);
         nextButton.setManaged(true);

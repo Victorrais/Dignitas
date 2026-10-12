@@ -38,7 +38,7 @@ public final class Tables {
     public static <S> TableView<S> table() {
         TableView<S> t = new TableView<>();
         t.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
-        t.setFixedCellSize(58);
+        t.fixedCellSizeProperty().bind(Ui.scaleProperty().multiply(58));
         VBox.setVgrow(t, javafx.scene.layout.Priority.ALWAYS);
         return t;
     }

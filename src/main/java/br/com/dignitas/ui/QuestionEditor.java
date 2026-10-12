@@ -137,10 +137,12 @@ public final class QuestionEditor {
         DialogPane pane = dialog.getDialogPane();
         pane.getButtonTypes().setAll(new ButtonType("Salvar", ButtonBar.ButtonData.OK_DONE), ButtonType.CANCEL);
         pane.getStylesheets().add(getClass().getResource("/css/dignitas.css").toExternalForm());
+        Ui.applyScale(pane);
 
         ScrollPane sp = new ScrollPane(form());
         sp.setFitToWidth(true);
-        sp.setPrefSize(820, 680);
+        sp.prefWidthProperty().bind(Ui.scaleProperty().multiply(900));
+        sp.prefHeightProperty().bind(Ui.scaleProperty().multiply(760));
         sp.getStyleClass().add("page-scroll");
         pane.setContent(sp);
 
@@ -161,7 +163,7 @@ public final class QuestionEditor {
 
     private Node form() {
         VBox f = new VBox(14);
-        f.setStyle("-fx-padding: 4 16 16 4;");
+        f.setStyle("-fx-padding: 0.286em 1.143em 1.143em 0.286em;");
 
         if (showExam) {
             ExamInfo e = draft.getExam();
@@ -236,7 +238,7 @@ public final class QuestionEditor {
 
     private Node imageSection() {
         preview.setPreserveRatio(true);
-        preview.setFitWidth(420);
+        preview.fitWidthProperty().bind(Ui.scaleProperty().multiply(420));
         preview.setImage(Ui.image(image));
         Button choose = Ui.button("Anexar imagem…", Feather.IMAGE, Styles.BUTTON_OUTLINED);
         choose.setOnAction(e -> {
@@ -259,7 +261,7 @@ public final class QuestionEditor {
 
     private Node baseImageSection() {
         basePreview.setPreserveRatio(true);
-        basePreview.setFitWidth(320);
+        basePreview.fitWidthProperty().bind(Ui.scaleProperty().multiply(320));
         basePreview.setImage(Ui.image(baseImage));
         Button choose = Ui.button("Imagem do texto-base…", Feather.IMAGE, Styles.BUTTON_OUTLINED, Styles.SMALL);
         choose.setOnAction(e -> {
@@ -323,7 +325,7 @@ public final class QuestionEditor {
         box.getStyleClass().add("alt-row");
         AltRow row = new AltRow(letter, text, correct, remove, box);
         row.thumb.setPreserveRatio(true);
-        row.thumb.setFitWidth(220);
+        row.thumb.fitWidthProperty().bind(Ui.scaleProperty().multiply(220));
         content.getChildren().add(row.thumb);
         row.setImage(a.getImage());
         pickImage.setOnAction(e -> {

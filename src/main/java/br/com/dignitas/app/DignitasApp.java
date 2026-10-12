@@ -28,9 +28,10 @@ public class DignitasApp extends Application {
         Scene scene = new Scene(window.root(), 1280, 820);
         scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/css/dignitas.css")).toExternalForm());
         stage.setTitle("Dignitas — Banco de questões");
-        stage.setMinWidth(1040);
-        stage.setMinHeight(680);
+        stage.setMinWidth(860);
+        stage.setMinHeight(600);
         stage.setScene(scene);
+        window.installShortcuts(scene);
         UiSetup.setOwner(stage);
         stage.show();
 

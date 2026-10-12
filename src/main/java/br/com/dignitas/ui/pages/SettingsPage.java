@@ -176,7 +176,30 @@ public class SettingsPage implements Page {
             cfg.setDarkTheme(b);
             persist();
         });
-        return Ui.card(Ui.label("Aparência", "card-title"), dark,
+        ComboBox<Integer> size = new ComboBox<>();
+        size.getItems().setAll(70, 75, 80, 85, 90, 100, 110, 125, 150);
+        size.setConverter(new javafx.util.StringConverter<>() {
+            @Override
+            public String toString(Integer v) {
+                return v == null ? "" : v + "%";
+            }
+
+            @Override
+            public Integer fromString(String s) {
+                return null;
+            }
+        });
+        size.setValue((int) Math.round(Ui.scale() * 100));
+        // Atalhos de teclado também mudam a escala: mantém a lista sincronizada.
+        Ui.scaleProperty().addListener((o, a, b) -> size.setValue((int) Math.round(b.doubleValue() * 100)));
+        size.setOnAction(e -> {
+            if (size.getValue() != null) MainWindow.setScale(size.getValue() / 100.0);
+        });
+        HBox sizeRow = new HBox(10, Ui.label("Tamanho da interface", "form-label"), size);
+        sizeRow.setAlignment(Pos.CENTER_LEFT);
+        return Ui.card(Ui.label("Aparência", "card-title"), dark, sizeRow,
+                Ui.wrapped("Atalhos: Ctrl + e Ctrl − ajustam o tamanho, Ctrl 0 volta ao padrão (85%), "
+                        + "Ctrl+B recolhe a barra lateral.", "hint"),
                 Ui.wrapped("Configurações salvas em " + cfg.dataDir(), "hint"));
     }
 

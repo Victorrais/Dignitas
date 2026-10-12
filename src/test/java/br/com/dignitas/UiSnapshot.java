@@ -58,9 +58,10 @@ public final class UiSnapshot {
         AtomicReference<MainWindow> window = new AtomicReference<>();
         AtomicReference<Scene> scene = new AtomicReference<>();
         runFx(() -> {
-            MainWindow.applyTheme(false);
+            MainWindow.applyTheme(AppConfig.get().darkTheme());
             MainWindow w = new MainWindow();
-            Scene s = new Scene(w.root(), 1280, 900);
+            Scene s = new Scene(w.root(), 1600, 1000);
+            if ("1".equals(System.getenv("SNAP_COLLAPSE"))) w.toggleSidebar();
             s.getStylesheets().add(Objects.requireNonNull(UiSnapshot.class.getResource("/css/dignitas.css")).toExternalForm());
             new Stage().setScene(s); // não é exibida
             w.markConnected("MySQL (snapshot)");
