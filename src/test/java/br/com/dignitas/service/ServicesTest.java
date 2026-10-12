@@ -124,6 +124,43 @@ class ServicesTest {
     }
 
     @Test
+    void savingTheSameFileTwiceIsRejectedWithoutWritingAnything() {
+        ExamInfo exam = new ExamInfo("Simulado", "Banca", 2025, null);
+        SaveSummary first = imports.save(exam, "prova.pdf", "hash-igual", 3, 0, List.of(draft("Primeira questão", null, 0)));
+        assertEquals(1, first.saved());
+
+        // Segunda gravação (ex.: duplo clique em "Salvar"), agora com outras questões.
+        AlreadyImportedException e = assertThrows(AlreadyImportedException.class, () ->
+                imports.save(exam, "prova.pdf", "hash-igual", 3, 0, List.of(draft("Outra questão", null, 1))));
+        assertEquals(1, e.existing().questions());
+        assertTrue(e.getMessage().contains("já foi importado"), e.getMessage());
+
+        assertEquals(1, questions.count(), "a transação recusada não grava questões");
+        assertEquals(1, imports.list().size());
+    }
+
+    @Test
+    void imagesOfAlternativesAndBaseTextArePersisted() {
+        byte[] png = {(byte) 0x89, 'P', 'N', 'G', 1, 2, 3};
+        QuestionDraft d = new QuestionDraft();
+        d.setStatement("Qual figura representa um triângulo?");
+        BaseTextDraft base = new BaseTextDraft(null, "", "Disponível em: exemplo.com");
+        base.setImage(png);
+        d.setBaseText(base);
+        for (int i = 0; i < 5; i++) d.addAlternative(String.valueOf((char) ('A' + i)), "", i == 1).setImage(new byte[]{(byte) i});
+        assertTrue(d.validate().isEmpty(), d.validate().toString());
+
+        long id = questions.save(d);
+        Question q = questions.loadFull(id);
+        assertArrayEquals(png, q.getBaseText().getImage());
+        for (int i = 0; i < 5; i++) assertArrayEquals(new byte[]{(byte) i}, q.getAlternatives().get(i).getImage());
+
+        QuestionDraft back = questions.toDraft(q);
+        assertArrayEquals(png, back.getBaseText().getImage());
+        assertNotNull(back.getAlternatives().get(4).getImage());
+    }
+
+    @Test
     void importSavesSharedBaseTextAndDeleteCascades() {
         BaseTextDraft shared = new BaseTextDraft(null, "Texto I compartilhado", "(Adaptado)");
         QuestionDraft q1 = draft("Primeira", "Português", 0);

@@ -2,6 +2,7 @@ package br.com.dignitas.app;
 
 import br.com.dignitas.persistence.Jpa;
 import br.com.dignitas.ui.MainWindow;
+import br.com.dignitas.ui.Ui;
 import br.com.dignitas.ui.UiSetup;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -26,11 +27,16 @@ public class DignitasApp extends Application {
         MainWindow window = new MainWindow();
 
         Scene scene = new Scene(window.root(), 1280, 820);
-        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/css/dignitas.css")).toExternalForm());
+        // Na cena (e não só no nó raiz) para que listas suspensas, menus e dicas também usem a paleta.
+        Ui.applyPalette(scene.getStylesheets());
         stage.setTitle("Dignitas — Banco de questões");
-        stage.setMinWidth(1040);
-        stage.setMinHeight(680);
+        stage.setMinWidth(860);
+        stage.setMinHeight(600);
         stage.setScene(scene);
+        window.installShortcuts(scene);
+        // Ícone da janela: o polvo claro ou escuro, conforme o tema.
+        stage.getIcons().setAll(Ui.appIcons(Ui.darkProperty().get()));
+        Ui.darkProperty().addListener((o, a, dark) -> stage.getIcons().setAll(Ui.appIcons(dark)));
         UiSetup.setOwner(stage);
         stage.show();
 

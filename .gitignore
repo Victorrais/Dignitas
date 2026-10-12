@@ -38,3 +38,10 @@ build/
 
 ### Mac OS ###
 .DS_Store
+### Projeto Integrador ###
+# Entregas e cópias locais dos repositórios das etapas (não versionados aqui)
+entregas/
+*.rar
+DignitasEtapa9/
+netbeans-dignitas/
+.claude/

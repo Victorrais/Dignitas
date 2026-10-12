@@ -27,6 +27,11 @@ public class Alternative {
     @Column(name = "is_answer", nullable = false)
     private boolean answer;
 
+    /** Alternativas em forma de imagem (gráficos, mapas, figuras). */
+    @Lob
+    @Column(name = "image", columnDefinition = "LONGBLOB")
+    private byte[] image;
+
     public Alternative() {
     }
 
@@ -70,5 +75,13 @@ public class Alternative {
 
     public void setAnswer(boolean answer) {
         this.answer = answer;
+    }
+
+    public byte[] getImage() {
+        return image;
+    }
+
+    public void setImage(byte[] image) {
+        this.image = image;
     }
 }

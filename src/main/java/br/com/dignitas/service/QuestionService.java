@@ -93,9 +93,13 @@ public class QuestionService {
         if (e != null) d.setExam(new ExamInfo(e.getName(), e.getBoard(), e.getYear(), e.getRole()));
         d.setSubjectName(q.getSubject() == null ? null : q.getSubject().getName());
         BaseText bt = q.getBaseText();
-        if (bt != null) d.setBaseText(new BaseTextDraft(bt.getId(), bt.getContent(), bt.getSource()));
+        if (bt != null) {
+            BaseTextDraft b = new BaseTextDraft(bt.getId(), bt.getContent(), bt.getSource());
+            b.setImage(bt.getImage());
+            d.setBaseText(b);
+        }
         d.setStatement(q.getStatement());
-        q.getAlternatives().forEach(a -> d.addAlternative(a.getLetter(), a.getStatement(), a.isAnswer()));
+        q.getAlternatives().forEach(a -> d.addAlternative(a.getLetter(), a.getStatement(), a.isAnswer()).setImage(a.getImage()));
         d.setAnnulled(q.isAnnulled());
         d.setTrueFalse(q.getAlternatives().size() == 2
                 && "C".equals(q.getAlternatives().get(0).getLetter())
@@ -142,7 +146,7 @@ public class QuestionService {
     static void apply(EntityManager em, Question q, QuestionDraft d, String hash,
                       Map<BaseTextDraft, BaseText> baseTexts) {
         q.setNumber(d.getNumber());
-        q.setStatement(d.getStatement().strip());
+        q.setStatement(d.getStatement() == null ? "" : d.getStatement().strip());
         q.setContentHash(hash);
         q.setAnnulled(d.isAnnulled());
         q.setImage(d.getImage());
@@ -157,12 +161,10 @@ public class QuestionService {
                 bt = btd.getId() != null ? em.find(BaseText.class, btd.getId()) : null;
                 if (bt == null) {
                     bt = new BaseText();
-                    bt.setContent(btd.getContent().strip());
-                    bt.setSource(Texts.blankToNull(btd.getSource()));
+                    copy(btd, bt);
                     em.persist(bt);
                 } else {
-                    bt.setContent(btd.getContent().strip());
-                    bt.setSource(Texts.blankToNull(btd.getSource()));
+                    copy(btd, bt);
                 }
                 baseTexts.put(btd, bt);
             }
@@ -177,15 +179,28 @@ public class QuestionService {
             if (i < current.size()) {
                 Alternative a = current.get(i);
                 a.setLetter(w.getLetter());
-                a.setStatement(w.getText().strip());
+                a.setStatement(nz(w.getText()));
                 a.setAnswer(w.isCorrect());
+                a.setImage(w.getImage());
             } else {
-                q.addAlternative(new Alternative(w.getLetter(), w.getText().strip(), w.isCorrect()));
+                Alternative a = new Alternative(w.getLetter(), nz(w.getText()), w.isCorrect());
+                a.setImage(w.getImage());
+                q.addAlternative(a);
             }
         }
         while (current.size() > wanted.size()) {
             current.removeLast();
         }
+    }
+
+    private static void copy(BaseTextDraft from, BaseText to) {
+        to.setContent(nz(from.getContent()));
+        to.setSource(Texts.blankToNull(from.getSource()));
+        to.setImage(from.getImage());
+    }
+
+    private static String nz(String s) {
+        return s == null ? "" : s.strip();
     }
 
     static Subject findOrCreateSubject(EntityManager em, String name) {

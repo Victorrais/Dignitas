@@ -47,6 +47,8 @@ public class ImportPage extends DbPage {
     private ReviewPane review;
     private File pdf;
     private File answerKey;
+    /** Nome de concurso sugerido a partir do arquivo (para saber se o usuário o alterou). */
+    private String suggestedName = "";
 
     public ImportPage(MainWindow app) {
         super(app);
@@ -60,7 +62,7 @@ public class ImportPage extends DbPage {
         VBox.setVgrow(stepHolder, Priority.ALWAYS);
         VBox page = new VBox(16, Ui.header("Importar PDF",
                 new Label("Extraia questões de provas em PDF de texto ou digitalizadas")), steps, stepHolder);
-        page.setStyle("-fx-padding: 28 32 20 32;");
+        page.setStyle("-fx-padding: 2em 2.286em 1.429em 2.286em;");
         showStep(0);
         return page;
     }
@@ -110,7 +112,11 @@ public class ImportPage extends DbPage {
             if (f != null) {
                 pdf = f;
                 pdfField.setText(f.getAbsolutePath());
-                if (examName.getText().isBlank()) examName.setText(guessName(f.getName()));
+                // Atualiza o nome sugerido ao trocar de arquivo, a menos que o usuário o tenha editado.
+                if (examName.getText().isBlank() || examName.getText().equals(suggestedName)) {
+                    suggestedName = guessName(f.getName());
+                    examName.setText(suggestedName);
+                }
             }
         });
         Button chooseKey = Ui.button("Escolher…", Feather.FILE, Styles.BUTTON_OUTLINED);
@@ -276,6 +282,7 @@ public class ImportPage extends DbPage {
                 + "única vez o pacote de idioma português do Tesseract (repositório oficial tesseract-ocr no GitHub).",
                 download, without, ButtonType.CANCEL);
         a.initOwner(Ui.owner());
+        Ui.applyScale(a.getDialogPane());
         a.setHeaderText("Baixar o pacote de OCR?");
         ButtonType choice = a.showAndWait().orElse(ButtonType.CANCEL);
         if (choice == download) {
@@ -297,7 +304,7 @@ public class ImportPage extends DbPage {
         VBox box = Ui.card(Ui.icon(Feather.CPU, 36), Ui.label("Lendo o PDF…", "card-title"), progress, progressText, cancel);
         box.setAlignment(Pos.CENTER);
         box.setMaxWidth(640);
-        box.setStyle("-fx-padding: 40;");
+        box.setStyle("-fx-padding: 2.857em;");
         StackPane s = new StackPane(box);
         StackPane.setAlignment(box, Pos.TOP_CENTER);
         return s;
@@ -333,7 +340,10 @@ public class ImportPage extends DbPage {
             return r;
         }, r -> {
             try {
-                review = new ReviewPane(r, exam, this::finished, this::discard);
+                review = new ReviewPane(r, exam, this::finished, this::discard, () -> {
+                    discard();
+                    app.go(MainWindow.Nav.IMPORTS);
+                });
                 showStep(2);
             } catch (Exception e) {
                 Ui.showError(e);
@@ -360,6 +370,7 @@ public class ImportPage extends DbPage {
         pdfField.clear();
         keyField.clear();
         examName.clear();
+        suggestedName = "";
         examBoard.clear();
         examYear.clear();
         examRole.clear();

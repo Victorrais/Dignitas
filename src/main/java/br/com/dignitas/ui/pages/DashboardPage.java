@@ -65,7 +65,7 @@ public class DashboardPage extends DbPage {
                 stat(Feather.CHECK_SQUARE, "success", Long.toString(o.answeredQuestions()), "questões respondidas"),
                 stat(Feather.TARGET, o.attempts() == 0 ? "" : o.accuracy() >= 0.6 ? "success" : "warning",
                         o.attempts() == 0 ? "—" : Ui.percent(o.accuracy()), "taxa de acerto"),
-                stat(Feather.BOOKMARK, "warning", Long.toString(o.flagged()), "marcadas para revisão"));
+                stat(Feather.BOOKMARK, "secondary", Long.toString(o.flagged()), "marcadas para revisão"));
         stats.getChildren().forEach(n -> HBox.setHgrow(n, Priority.ALWAYS));
 
         Button practice = Ui.button("Resolver questões", Feather.PLAY, Styles.ACCENT);

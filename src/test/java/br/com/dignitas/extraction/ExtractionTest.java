@@ -158,6 +158,64 @@ class ExtractionTest {
         assertTrue(qs.get(0).correctAlternative().orElseThrow().getLetter().equals("E"));
     }
 
+    /** Formato ENEM: "QUESTÃO 01", alternativas só com a letra, texto-base em imagem e alternativas em imagem. */
+    @Test
+    void enemStyleWithImageBaseTextAndImageAlternatives() throws Exception {
+        TestPdf pdf = new TestPdf();
+        pdf.bold(0, 40, 50, "LINGUAGENS, CÓDIGOS E SUAS TECNOLOGIAS");
+        pdf.text(0, 40, 80, "Texto para as Questões de 01 a 02.");
+        pdf.image(0, 60, 90, 200, 100, java.awt.Color.GRAY);
+        pdf.text(0, 40, 205, "Disponível em: www.exemplo.com.br. Acesso em: 1 jan. 2024.");
+        pdf.bold(0, 40, 240, "QUESTÃO 01");
+        pdf.block(0, 40, 258, "Nesse cartaz, o objetivo principal é");
+        pdf.block(0, 40, 275, "A informar o leitor.", "B divertir o público.", "C vender um produto.",
+                "D alertar sobre um risco.", "E ensinar uma técnica.");
+        pdf.bold(0, 40, 370, "QUESTÃO 02");
+        pdf.text(0, 40, 388, "A autora do cartaz representa a ideia principal com a figura");
+        java.awt.Color[] colors = {java.awt.Color.RED, java.awt.Color.GREEN, java.awt.Color.BLUE,
+                java.awt.Color.ORANGE, java.awt.Color.MAGENTA};
+        for (int i = 0; i < 5; i++) {
+            float y = 420 + i * 40;
+            pdf.text(0, 40, y, String.valueOf((char) ('A' + i)));
+            pdf.image(0, 60, y - 15, 80, 30, colors[i]);
+        }
+        TestPdf key = new TestPdf();
+        key.block(0, 60, 80, "GABARITO", "01 - D   02 - C");
+
+        ImportPipeline.Result r = run(pdf.save(dir, "enem.pdf"), key.save(dir, "gab.pdf"));
+        List<QuestionDraft> qs = r.questions();
+        assertEquals(2, qs.size());
+        QuestionDraft q1 = qs.get(0), q2 = qs.get(1);
+
+        assertNotNull(q1.getBaseText());
+        assertSame(q1.getBaseText(), q2.getBaseText(), "o mesmo texto-base vale para as duas questões");
+        assertNotNull(q1.getBaseText().getImage(), "texto-base em forma de imagem");
+        assertTrue(q1.getBaseText().getSource().startsWith("Disponível em"));
+        assertEquals("Linguagens, Códigos e suas Tecnologias", q1.getSubjectName());
+
+        assertEquals("Nesse cartaz, o objetivo principal é", q1.getStatement());
+        assertEquals("alertar sobre um risco.", q1.getAlternatives().get(3).getText());
+        assertTrue(q1.getAlternatives().get(3).isCorrect());
+
+        assertEquals("A autora do cartaz representa a ideia principal com a figura", q2.getStatement());
+        assertEquals(5, q2.getAlternatives().size());
+        for (QuestionDraft.AlternativeDraft a : q2.getAlternatives()) {
+            assertTrue(a.getText().isBlank(), "alternativa " + a.getLetter() + " só com imagem");
+            assertNotNull(a.getImage(), "imagem da alternativa " + a.getLetter());
+        }
+        assertTrue(q2.getAlternatives().get(2).isCorrect());
+        assertNull(q2.getImage(), "as figuras foram para as alternativas, não para o enunciado");
+        qs.forEach(q -> assertTrue(q.validate().isEmpty(), q.getNumber() + ": " + q.validate()));
+
+        // Cada alternativa recebeu a figura certa (cor do centro do recorte).
+        for (int i = 0; i < 5; i++) {
+            java.awt.image.BufferedImage img = javax.imageio.ImageIO.read(
+                    new java.io.ByteArrayInputStream(q2.getAlternatives().get(i).getImage()));
+            assertEquals(colors[i].getRGB(), img.getRGB(img.getWidth() / 2, img.getHeight() / 2),
+                    "cor da alternativa " + (char) ('A' + i));
+        }
+    }
+
     @Test
     void answerKeyFormats() {
         Map<Integer, String> key = new AnswerKeyParser().parseLines(List.of(

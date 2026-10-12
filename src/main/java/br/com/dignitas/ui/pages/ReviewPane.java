@@ -8,6 +8,7 @@ import br.com.dignitas.model.ExamInfo;
 import br.com.dignitas.model.QuestionDraft;
 import br.com.dignitas.model.QuestionDraft.Region;
 import br.com.dignitas.model.Texts;
+import br.com.dignitas.service.AlreadyImportedException;
 import br.com.dignitas.service.Dtos.SaveSummary;
 import br.com.dignitas.ui.Async;
 import br.com.dignitas.ui.QuestionEditor;
@@ -40,6 +41,9 @@ class ReviewPane extends BorderPane {
     private final ExamInfo exam;
     private final Runnable onSaved;
     private final Runnable onDiscard;
+    private final Runnable onShowImports;
+    private final Button saveButton = Ui.button("Salvar questões selecionadas", Feather.SAVE, Styles.ACCENT);
+    private final Button discardButton = Ui.button("Descartar importação", Feather.X, Styles.BUTTON_OUTLINED);
     private final PdfPageRenderer renderer;
 
     private final ListView<QuestionDraft> list = new ListView<>();
@@ -53,11 +57,13 @@ class ReviewPane extends BorderPane {
     private ScrollPane viewerScroll;
     private boolean fitPending = true;
 
-    ReviewPane(ImportPipeline.Result result, ExamInfo exam, Runnable onSaved, Runnable onDiscard) throws IOException {
+    ReviewPane(ImportPipeline.Result result, ExamInfo exam, Runnable onSaved, Runnable onDiscard,
+               Runnable onShowImports) throws IOException {
         this.result = result;
         this.exam = exam;
         this.onSaved = onSaved;
         this.onDiscard = onDiscard;
+        this.onShowImports = onShowImports;
         this.renderer = new PdfPageRenderer(result.file());
 
         list.getItems().setAll(result.questions());
@@ -73,7 +79,7 @@ class ReviewPane extends BorderPane {
         setTop(summary());
         SplitPane split = new SplitPane(viewer(), questionsPanel());
         split.setDividerPositions(0.48);
-        split.setStyle("-fx-background-color: transparent; -fx-padding: 12 0 12 0;");
+        split.setStyle("-fx-background-color: transparent; -fx-padding: 0.857em 0 0.857em 0;");
         setCenter(split);
         setBottom(footer());
 
@@ -146,7 +152,7 @@ class ReviewPane extends BorderPane {
         });
         VBox.setVgrow(sp, Priority.ALWAYS);
         VBox box = Ui.card(toolbar, sp);
-        box.setStyle("-fx-padding: 12;");
+        box.setStyle("-fx-padding: 0.857em;");
         return box;
     }
 
@@ -233,7 +239,7 @@ class ReviewPane extends BorderPane {
         });
         VBox.setVgrow(list, Priority.ALWAYS);
         VBox box = Ui.card(toolbar, list);
-        box.setStyle("-fx-padding: 12;");
+        box.setStyle("-fx-padding: 0.857em;");
         return box;
     }
 
@@ -331,8 +337,13 @@ class ReviewPane extends BorderPane {
                     a -> title.getChildren().add(Ui.badge("Gabarito " + a.getLetter(), "accent")),
                     () -> title.getChildren().add(Ui.badge("Sem gabarito", "warning")));
             title.getChildren().add(Ui.badge(q.isTrueFalse() ? "Certo/Errado" : q.getAlternatives().size() + " alternativas", null));
-            if (q.getBaseText() != null) title.getChildren().add(Ui.badge("Texto-base", null));
+            if (q.getBaseText() != null) {
+                title.getChildren().add(Ui.badge(q.getBaseText().getImage() != null ? "Texto-base com imagem" : "Texto-base", null));
+            }
             if (q.getImage() != null) title.getChildren().add(Ui.badge("Imagem", null));
+            if (q.getAlternatives().stream().anyMatch(a -> a.getImage() != null)) {
+                title.getChildren().add(Ui.badge("Alternativas com imagem", "accent"));
+            }
             if (q.isOcr()) title.getChildren().add(Ui.badge("OCR", null));
 
             Label snippet = Ui.wrapped(Texts.abbreviate(q.getStatement(), 180), "cell-subtitle");
@@ -346,7 +357,7 @@ class ReviewPane extends BorderPane {
             }
             for (String err : errors) {
                 Label l = Ui.wrapped(err, "error-text");
-                l.setStyle("-fx-font-size: 12px;");
+                l.setStyle("-fx-font-size: 0.857em;");
                 body.getChildren().add(l);
             }
             HBox.setHgrow(body, Priority.ALWAYS);
@@ -361,13 +372,13 @@ class ReviewPane extends BorderPane {
     // ---------- Rodapé ----------
 
     private HBox footer() {
-        Button discard = Ui.button("Descartar importação", Feather.X, Styles.BUTTON_OUTLINED);
+        Button discard = discardButton;
         discard.setOnAction(e -> {
             if (Ui.confirm("Descartar importação?", "As questões extraídas e suas correções serão perdidas.", "Descartar")) {
                 onDiscard.run();
             }
         });
-        Button save = Ui.button("Salvar questões selecionadas", Feather.SAVE, Styles.ACCENT);
+        Button save = saveButton;
         save.setOnAction(e -> save());
         HBox f = new HBox(12, discard, Ui.hspacer(), selectedCount, save);
         f.setAlignment(Pos.CENTER_LEFT);
@@ -394,11 +405,26 @@ class ReviewPane extends BorderPane {
                         + "ignoradas. Deseja salvar as demais?", "Salvar as válidas")) {
             return;
         }
+        // Impede um segundo clique (ou duplo clique) de gravar o mesmo arquivo de novo.
+        setSaving(true);
         Async.run(() -> Services.IMPORTS.save(exam, result.file().getName(), result.fileHash(), result.pageCount(),
                 result.ocrPages(), drafts), (SaveSummary s) -> {
             Ui.info("Importação concluída", s.saved() + " questões foram salvas no banco."
                     + (s.skippedDuplicates() > 0 ? " " + s.skippedDuplicates() + " duplicadas foram ignoradas." : ""));
             onSaved.run();
+        }, err -> {
+            setSaving(false);
+            if (err instanceof AlreadyImportedException already) {
+                if (Ui.confirm("Arquivo já importado", already.getMessage(), "Ver importações")) onShowImports.run();
+            } else {
+                Ui.showError(err);
+            }
         });
+    }
+
+    private void setSaving(boolean saving) {
+        saveButton.setDisable(saving);
+        discardButton.setDisable(saving);
+        saveButton.setText(saving ? "Salvando…" : "Salvar questões selecionadas");
     }
 }

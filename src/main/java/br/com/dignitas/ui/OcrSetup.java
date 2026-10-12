@@ -19,6 +19,7 @@ public final class OcrSetup {
                 + "Isso só é necessário uma vez.", "page-subtitle");
         Dialog<Void> dialog = new Dialog<>();
         dialog.initOwner(Ui.owner());
+        Ui.applyScale(dialog.getDialogPane());
         dialog.initModality(Modality.APPLICATION_MODAL);
         dialog.setTitle("Preparando o OCR");
         dialog.setHeaderText("Preparando o OCR");

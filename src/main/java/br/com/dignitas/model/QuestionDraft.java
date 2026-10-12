@@ -14,11 +14,35 @@ public class QuestionDraft {
         private String letter;
         private String text;
         private boolean correct;
+        private byte[] image;
+        /** Figura do PDF associada à alternativa (antes de virar imagem). */
+        private Region figure;
 
         public AlternativeDraft(String letter, String text, boolean correct) {
             this.letter = letter;
             this.text = text;
             this.correct = correct;
+        }
+
+        public byte[] getImage() {
+            return image;
+        }
+
+        public void setImage(byte[] image) {
+            this.image = image;
+        }
+
+        public Region getFigure() {
+            return figure;
+        }
+
+        public void setFigure(Region figure) {
+            this.figure = figure;
+        }
+
+        /** Tem conteúdo (texto ou imagem)? */
+        public boolean hasContent() {
+            return !Texts.isBlank(text) || image != null || figure != null;
         }
 
         public String getLetter() {
@@ -63,6 +87,8 @@ public class QuestionDraft {
 
     // Metadados da extração
     private Region region;
+    /** Figuras do PDF que pertencem ao enunciado (viram a imagem da questão). */
+    private final List<Region> figures = new ArrayList<>();
     private double confidence = 1.0;
     private boolean ocr;
     private final List<String> warnings = new ArrayList<>();
@@ -166,6 +192,10 @@ public class QuestionDraft {
         this.image = image;
     }
 
+    public List<Region> getFigures() {
+        return figures;
+    }
+
     public Region getRegion() {
         return region;
     }
@@ -213,8 +243,10 @@ public class QuestionDraft {
     /** Hash de conteúdo usado para detectar duplicidade (mesma regra do banco). */
     public String contentHash() {
         StringBuilder sb = new StringBuilder(Texts.normalize(statement));
+        if (image != null) sb.append("#img").append(Texts.sha256(image));
         for (AlternativeDraft a : alternatives) {
             sb.append('|').append(Texts.normalize(a.getText()));
+            if (a.getImage() != null) sb.append("#img").append(Texts.sha256(a.getImage()));
         }
         return Texts.sha256(sb.toString());
     }
@@ -222,10 +254,11 @@ public class QuestionDraft {
     /** Lista os problemas que impedem salvar a questão; vazia se estiver válida. */
     public List<String> validate() {
         List<String> errors = new ArrayList<>();
-        if (Texts.isBlank(statement)) errors.add("O enunciado está vazio.");
+        boolean hasBase = baseText != null && (!baseText.isEmpty() || baseText.getImage() != null);
+        if (Texts.isBlank(statement) && image == null && !hasBase) errors.add("O enunciado está vazio.");
         if (alternatives.size() < 2) errors.add("A questão precisa de pelo menos 2 alternativas.");
         for (AlternativeDraft a : alternatives) {
-            if (Texts.isBlank(a.getText())) {
+            if (!a.hasContent()) {
                 errors.add("A alternativa " + a.getLetter() + " está vazia.");
             }
         }

@@ -128,4 +128,52 @@ public final class AppConfig {
     public void setDarkTheme(boolean dark) {
         props.setProperty("ui.dark", Boolean.toString(dark));
     }
+
+    /** Escala da interface (1.0 = 14 px de texto base). */
+    public double uiScale() {
+        try {
+            return Math.max(0.7, Math.min(1.5, Double.parseDouble(props.getProperty("ui.scale", "0.85"))));
+        } catch (NumberFormatException e) {
+            return 0.85;
+        }
+    }
+
+    public void setUiScale(double scale) {
+        props.setProperty("ui.scale", Double.toString(scale));
+    }
+
+    public boolean sidebarCollapsed() {
+        return Boolean.parseBoolean(props.getProperty("ui.sidebarCollapsed", "false"));
+    }
+
+    public void setSidebarCollapsed(boolean collapsed) {
+        props.setProperty("ui.sidebarCollapsed", Boolean.toString(collapsed));
+    }
+
+    /** Mostrar o texto do material de apoio ao resolver questões. */
+    public boolean showSupportText() {
+        return Boolean.parseBoolean(props.getProperty("ui.showSupportText", "true"));
+    }
+
+    public void setShowSupportText(boolean show) {
+        props.setProperty("ui.showSupportText", Boolean.toString(show));
+    }
+
+    /** Mostrar imagens do material de apoio e do enunciado ao resolver questões. */
+    public boolean showSupportImages() {
+        return Boolean.parseBoolean(props.getProperty("ui.showSupportImages", "true"));
+    }
+
+    public void setShowSupportImages(boolean show) {
+        props.setProperty("ui.showSupportImages", Boolean.toString(show));
+    }
+
+    /** Grava sem interromper a interface em caso de falha (preferências não críticas). */
+    public void saveQuietly() {
+        try {
+            save();
+        } catch (IOException e) {
+            System.err.println("Não foi possível salvar as preferências: " + e.getMessage());
+        }
+    }
 }

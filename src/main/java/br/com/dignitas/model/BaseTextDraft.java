@@ -9,6 +9,9 @@ public class BaseTextDraft {
     private Long id;
     private String content;
     private String source;
+    private byte[] image;
+    /** Figuras do PDF que fazem parte do texto-base (antes de virar imagem). */
+    private final java.util.List<QuestionDraft.Region> figures = new java.util.ArrayList<>();
 
     public BaseTextDraft() {
     }
@@ -39,7 +42,20 @@ public class BaseTextDraft {
         this.source = source;
     }
 
+    public byte[] getImage() {
+        return image;
+    }
+
+    public void setImage(byte[] image) {
+        this.image = image;
+    }
+
+    public java.util.List<QuestionDraft.Region> getFigures() {
+        return figures;
+    }
+
+    /** Sem texto e sem imagem. */
     public boolean isEmpty() {
-        return Texts.isBlank(content);
+        return Texts.isBlank(content) && image == null && figures.isEmpty();
     }
 }

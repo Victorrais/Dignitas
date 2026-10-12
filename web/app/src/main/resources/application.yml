@@ -1,0 +1,35 @@
+server:
+  port: 8080
+  # Só aceita conexões desta máquina. Para acesso externo, use o túnel (publicar.cmd), que conecta aqui.
+  address: 127.0.0.1
+  # O túnel (cloudflared, nesta máquina) informa o endereço público em X-Forwarded-*;
+  # assim os redirecionamentos (ex.: para o login) usam https e o domínio do túnel
+  forward-headers-strategy: native
+  tomcat:
+    # Redirecionamentos relativos: funcionam também atrás do túnel, que usa outro domínio
+    use-relative-redirects: true
+
+spring:
+  application:
+    name: dignitas-web
+  # Configuração local do usuário (senhas), fora do repositório. Opcional.
+  config:
+    import: optional:file:${dignitas.config-local:${user.home}/dignitas/dignitas-web.properties}
+  servlet:
+    multipart:
+      max-file-size: 25MB
+      max-request-size: 27MB
+
+dignitas:
+  db:
+    # O banco é criado automaticamente se não existir (createDatabaseIfNotExist).
+    url: jdbc:mysql://localhost:3306/dignitasdb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=UTF-8&serverTimezone=America/Sao_Paulo
+    usuario: ${DIGNITAS_DB_USUARIO:root}
+    senha: ${DIGNITAS_DB_SENHA:}
+    driver: com.mysql.cj.jdbc.Driver
+  login:
+    usuario: ${DIGNITAS_LOGIN_USUARIO:admin}
+    # Sem senha configurada, uma senha aleatória é gerada a cada execução e mostrada no log
+    senha: ${DIGNITAS_LOGIN_SENHA:}
+  # Modelos do Tesseract (português) ficam aqui; o download é feito na primeira importação com OCR.
+  tessdata-dir: ${user.home}/dignitas/tessdata

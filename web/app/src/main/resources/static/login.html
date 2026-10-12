@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Dignitas · Entrar</title>
+    <link rel="icon" href="img/favicon.png">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/paginas.css">
+    <script src="js/login.js" defer></script>
+</head>
+<body class="pagina-login">
+<main class="login">
+    <div class="login-marca">
+        <img src="img/dignitas.png" alt="">
+        <div><strong>Dignitas</strong><span>Banco de questões</span></div>
+    </div>
+
+    <form class="card" id="form-login" method="post" action="login" novalidate>
+        <h1>Entrar</h1>
+        <div class="alert alert-error" id="aviso-erro" role="alert" hidden>Usuário ou senha incorretos.</div>
+        <div class="alert alert-ok" id="aviso-saiu" role="status" hidden>Você saiu do Dignitas.</div>
+        <input type="hidden" name="_csrf" id="csrf">
+        <div class="field">
+            <label for="usuario">Usuário</label>
+            <input type="text" id="usuario" name="username" autocomplete="username" required>
+            <span class="field-error" id="erro-usuario"></span>
+        </div>
+        <div class="field">
+            <label for="senha">Senha</label>
+            <input type="password" id="senha" name="password" autocomplete="current-password" required>
+            <span class="field-error" id="erro-senha"></span>
+        </div>
+        <button class="btn btn-primary" type="submit">Entrar</button>
+    </form>
+</main>
+</body>
+</html>

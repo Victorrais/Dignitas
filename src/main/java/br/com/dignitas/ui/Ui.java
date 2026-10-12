@@ -15,6 +15,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 import java.util.Optional;
 
 /** Pequenos construtores de componentes usados por todas as telas. */
@@ -24,7 +25,76 @@ public final class Ui {
 
     private static Window owner;
 
+    /** Tamanho base do texto em px quando a escala é 1.0. Todo o CSS do app é relativo a ele (em). */
+    public static final double BASE_FONT = 14;
+    /** Escala atual da interface; telas e diálogos acompanham as mudanças. */
+    private static final javafx.beans.property.DoubleProperty SCALE =
+            new javafx.beans.property.SimpleDoubleProperty(br.com.dignitas.app.AppConfig.get().uiScale());
+
     private Ui() {
+    }
+
+    /** Tema escuro ativo? Janelas, diálogos e ícones acompanham. */
+    private static final javafx.beans.property.BooleanProperty DARK =
+            new javafx.beans.property.SimpleBooleanProperty(br.com.dignitas.app.AppConfig.get().darkTheme());
+    private static final String CSS = resource("/css/dignitas.css");
+    private static final String PALETTE_LIGHT = resource("/css/palette-light.css");
+    private static final String PALETTE_DARK = resource("/css/palette-dark.css");
+    private static final java.util.Map<String, Image> ICONS = new java.util.HashMap<>();
+
+    private static String resource(String path) {
+        return Objects.requireNonNull(Ui.class.getResource(path)).toExternalForm();
+    }
+
+    /** Coloca a folha do app e a paleta do tema atual numa lista de estilos, trocando a paleta com o tema. */
+    public static void applyPalette(javafx.collections.ObservableList<String> stylesheets) {
+        if (!stylesheets.contains(CSS)) stylesheets.add(CSS);
+        Runnable sync = () -> {
+            stylesheets.removeAll(PALETTE_LIGHT, PALETTE_DARK);
+            stylesheets.add(DARK.get() ? PALETTE_DARK : PALETTE_LIGHT);
+        };
+        sync.run();
+        DARK.addListener((o, a, b) -> sync.run());
+    }
+
+    public static javafx.beans.property.BooleanProperty darkProperty() {
+        return DARK;
+    }
+
+    /** Ícone do app (o polvo) na versão do tema: {@code /icons/dignitas-light|dark-<tamanho>.png}. */
+    public static Image appIcon(boolean dark, int size) {
+        String path = "/icons/dignitas-" + (dark ? "dark" : "light") + "-" + size + ".png";
+        return ICONS.computeIfAbsent(path, p -> new Image(Objects.requireNonNull(Ui.class.getResource(p)).toExternalForm()));
+    }
+
+    public static java.util.List<Image> appIcons(boolean dark) {
+        return java.util.stream.IntStream.of(16, 24, 32, 48, 64, 128, 256).mapToObj(s -> appIcon(dark, s)).toList();
+    }
+
+    public static javafx.beans.property.DoubleProperty scaleProperty() {
+        return SCALE;
+    }
+
+    public static double scale() {
+        return SCALE.get();
+    }
+
+    /** Aplica (e mantém atualizado) o tamanho de fonte base num nó raiz: janela principal ou diálogo. */
+    public static void applyScale(javafx.scene.Parent root) {
+        // Identidade visual: folha de estilos do app e paleta do tema (claro/escuro).
+        applyPalette(root.getStylesheets());
+        root.styleProperty().bind(javafx.beans.binding.Bindings.createStringBinding(
+                () -> String.format(java.util.Locale.ROOT, "-fx-font-size: %.2fpx;", BASE_FONT * SCALE.get()), SCALE));
+    }
+
+    /**
+     * Largura de exibição de uma imagem recortada do PDF (150 dpi): reduzida para algo próximo do tamanho
+     * impresso e acompanhando a escala da interface, sem passar da largura disponível.
+     */
+    public static javafx.beans.binding.DoubleBinding imageWidth(javafx.scene.image.Image img,
+                                                                 javafx.beans.value.ObservableDoubleValue available) {
+        return javafx.beans.binding.Bindings.createDoubleBinding(
+                () -> Math.max(40, Math.min(img.getWidth() * 0.7 * SCALE.get(), available.get())), SCALE, available);
     }
 
     static void setOwner(Window w) {
@@ -37,7 +107,9 @@ public final class Ui {
 
     public static FontIcon icon(Ikon ikon, int size) {
         FontIcon i = new FontIcon(ikon);
-        i.setIconSize(size);
+        // Acompanha a escala da interface (tamanhos pensados para 14 px).
+        i.iconSizeProperty().bind(javafx.beans.binding.Bindings.createIntegerBinding(
+                () -> (int) Math.round(size * SCALE.get()), SCALE));
         return i;
     }
 
@@ -134,10 +206,36 @@ public final class Ui {
         return data == null ? null : new Image(new ByteArrayInputStream(data));
     }
 
+    /** Faz a imagem abrir ampliada (tamanho original, com rolagem) ao ser clicada. */
+    public static void zoomOnClick(javafx.scene.image.ImageView view) {
+        view.setCursor(javafx.scene.Cursor.HAND);
+        Tooltip.install(view, new Tooltip("Clique para ampliar"));
+        view.setOnMouseClicked(e -> {
+            Image img = view.getImage();
+            if (img == null) return;
+            javafx.scene.image.ImageView full = new javafx.scene.image.ImageView(img);
+            full.setPreserveRatio(true);
+            ScrollPane sp = new ScrollPane(new StackPane(full));
+            sp.setPannable(true);
+            Dialog<Void> d = new Dialog<>();
+            d.initOwner(owner);
+            d.setTitle("Imagem");
+            d.setResizable(true);
+            d.getDialogPane().setContent(sp);
+            d.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+            applyScale(d.getDialogPane());
+            javafx.geometry.Rectangle2D screen = javafx.stage.Screen.getPrimary().getVisualBounds();
+            sp.setPrefSize(Math.min(img.getWidth() + 24, screen.getWidth() * 0.85),
+                    Math.min(img.getHeight() + 24, screen.getHeight() * 0.8));
+            d.show();
+        });
+    }
+
     public static boolean confirm(String title, String text, String okText) {
         Alert a = new Alert(Alert.AlertType.CONFIRMATION, text, new ButtonType(okText, ButtonBar.ButtonData.OK_DONE),
                 ButtonType.CANCEL);
         a.initOwner(owner);
+        applyScale(a.getDialogPane());
         a.setTitle(title);
         a.setHeaderText(title);
         Optional<ButtonType> r = a.showAndWait();
@@ -147,6 +245,7 @@ public final class Ui {
     public static void info(String title, String text) {
         Alert a = new Alert(Alert.AlertType.INFORMATION, text, ButtonType.OK);
         a.initOwner(owner);
+        applyScale(a.getDialogPane());
         a.setTitle(title);
         a.setHeaderText(title);
         a.showAndWait();
@@ -158,11 +257,18 @@ public final class Ui {
         while (root.getCause() != null && root.getCause() != root) root = root.getCause();
         String msg = e.getMessage() != null && !(e.getMessage().contains("Exception")) ? e.getMessage() : root.getMessage();
         if (msg == null) msg = root.getClass().getSimpleName();
+        String header = "Algo deu errado";
+        String friendly = constraintMessage(e);
+        if (friendly != null) {
+            msg = friendly;
+            header = "Não foi possível salvar";
+        }
 
         Alert a = new Alert(Alert.AlertType.ERROR, msg, ButtonType.OK);
         a.initOwner(owner);
+        applyScale(a.getDialogPane());
         a.setTitle("Erro");
-        a.setHeaderText("Algo deu errado");
+        a.setHeaderText(header);
         StringWriter sw = new StringWriter();
         e.printStackTrace(new PrintWriter(sw));
         TextArea details = new TextArea(sw.toString());
@@ -171,5 +277,29 @@ public final class Ui {
         a.getDialogPane().setExpandableContent(details);
         a.showAndWait();
         e.printStackTrace();
+    }
+
+    /**
+     * Traduz violações de restrição do banco (registro duplicado, referência inválida) para uma frase
+     * compreensível. Retorna null se o erro não for desse tipo.
+     */
+    static String constraintMessage(Throwable e) {
+        for (Throwable t = e; t != null; t = t.getCause() == t ? null : t.getCause()) {
+            boolean constraint = t instanceof java.sql.SQLIntegrityConstraintViolationException
+                    || t instanceof org.hibernate.exception.ConstraintViolationException;
+            if (!constraint) continue;
+            String text = String.valueOf(t.getMessage()).toLowerCase(java.util.Locale.ROOT);
+            if (text.contains("uk_import_file_hash")) {
+                return "Este PDF já foi importado. Para importá-lo de novo, exclua a importação anterior na tela Importações.";
+            }
+            if (text.contains("uk_question_content_hash")) {
+                return "Já existe uma questão com o mesmo enunciado e as mesmas alternativas no banco.";
+            }
+            if (text.contains("uk_subject_name")) return "Já existe uma disciplina com esse nome.";
+            if (text.contains("duplicate")) return "Já existe um registro igual no banco de dados.";
+            return "A operação foi recusada pelo banco de dados porque violaria a integridade dos dados "
+                    + "(por exemplo, um registro relacionado não existe mais).";
+        }
+        return null;
     }
 }
