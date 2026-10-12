@@ -8,6 +8,17 @@ deixa você revisar o resultado e guarda tudo num banco MySQL local para estudo 
 
 Em desenvolvimento (versão 2.0: reescrita em JavaFX).
 
+## Versão web
+
+A pasta [`web/`](web/README.md) tem a versão web do Dignitas: API REST em Spring Boot sobre as mesmas regras,
+com front-end em HTML, CSS e JavaScript, login e o mesmo banco MySQL. Ela pode ser usada de três formas:
+
+- **Executável para Windows** (`Dignitas.exe`, com Java embutido): sobe o servidor, abre o navegador e fica na bandeja.
+- **Pela linha de comando**, com Maven.
+- **Na internet**, por um túnel a partir do seu computador (`publicar.cmd` ou pelo ícone da bandeja).
+
+Detalhes em [web/README.md](web/README.md).
+
 ## Tecnologias
 
 | Camada | Tecnologia |
@@ -160,6 +171,10 @@ src/main/java/br/com/dignitas/
   service/      regras de negócio e consultas
   extraction/   PDF → questões (PDFBox, Tesseract, layout, segmentação, gabarito)
   ui/           janela, componentes e telas (ui/pages)
+
+web/            versão web (projeto Maven próprio)
+  core/         regras de negócio sem interface, reaproveitadas pela API
+  app/          Spring Boot: API REST, login, front-end estático e empacotamento (packaging/)
 ```
 
 ## Limitações conhecidas
