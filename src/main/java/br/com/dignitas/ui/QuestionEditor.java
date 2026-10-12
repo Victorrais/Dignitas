@@ -47,10 +47,34 @@ public final class QuestionEditor {
     private final ToggleGroup correctGroup = new ToggleGroup();
     private final List<AltRow> rows = new ArrayList<>();
     private final ImageView preview = new ImageView();
+    private final ImageView basePreview = new ImageView();
     private final Label errors = Ui.wrapped("", "error-text");
     private byte[] image;
+    private byte[] baseImage;
 
-    private record AltRow(Label letter, TextArea text, RadioButton correct, Button remove, HBox box) {
+    private static final class AltRow {
+        final Label letter;
+        final TextArea text;
+        final RadioButton correct;
+        final Button remove;
+        final HBox box;
+        final ImageView thumb = new ImageView();
+        byte[] image;
+
+        AltRow(Label letter, TextArea text, RadioButton correct, Button remove, HBox box) {
+            this.letter = letter;
+            this.text = text;
+            this.correct = correct;
+            this.remove = remove;
+            this.box = box;
+        }
+
+        void setImage(byte[] data) {
+            image = data;
+            thumb.setImage(Ui.image(data));
+            thumb.setVisible(data != null);
+            thumb.setManaged(data != null);
+        }
     }
 
     private QuestionEditor(QuestionDraft draft, boolean showExam, List<String> subjects, Supplier<byte[]> cropper) {
@@ -59,6 +83,7 @@ public final class QuestionEditor {
         this.cropper = cropper;
         subject.getItems().setAll(subjects);
         image = draft.getImage();
+        baseImage = draft.getBaseText() == null ? null : draft.getBaseText().getImage();
     }
 
     // ---------- Pontos de entrada ----------
@@ -172,7 +197,7 @@ public final class QuestionEditor {
         baseText.setPromptText("Texto de apoio (opcional)");
         baseSource.setText(bt == null ? "" : nz(bt.getSource()));
         baseSource.setPromptText("Fonte: \"Disponível em…\", \"(Adaptado)\"");
-        f.getChildren().addAll(field("Texto-base", baseText), baseSource,
+        f.getChildren().addAll(field("Texto-base", baseText), baseImageSection(), baseSource,
                 Ui.wrapped("Alterações no texto-base valem para todas as questões que o compartilham.", "hint"));
 
         statement.setText(draft.getStatement());
@@ -215,15 +240,8 @@ public final class QuestionEditor {
         preview.setImage(Ui.image(image));
         Button choose = Ui.button("Anexar imagem…", Feather.IMAGE, Styles.BUTTON_OUTLINED);
         choose.setOnAction(e -> {
-            FileChooser fc = new FileChooser();
-            fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Imagens", "*.png", "*.jpg", "*.jpeg"));
-            File file = fc.showOpenDialog(Ui.owner());
-            if (file == null) return;
-            try {
-                setImage(Files.readAllBytes(file.toPath()));
-            } catch (IOException ex) {
-                Ui.showError(ex);
-            }
+            byte[] data = chooseImage();
+            if (data != null) setImage(data);
         });
         Button crop = Ui.button("Recortar da página do PDF", Feather.CROP, Styles.BUTTON_OUTLINED);
         crop.setVisible(cropper != null);
@@ -237,6 +255,41 @@ public final class QuestionEditor {
         remove.disableProperty().bind(preview.imageProperty().isNull());
         return new VBox(8, Ui.label("Imagem (figura, gráfico, tabela)", "form-label"),
                 new HBox(8, choose, crop, remove), preview);
+    }
+
+    private Node baseImageSection() {
+        basePreview.setPreserveRatio(true);
+        basePreview.setFitWidth(320);
+        basePreview.setImage(Ui.image(baseImage));
+        Button choose = Ui.button("Imagem do texto-base…", Feather.IMAGE, Styles.BUTTON_OUTLINED, Styles.SMALL);
+        choose.setOnAction(e -> {
+            byte[] data = chooseImage();
+            if (data != null) {
+                baseImage = data;
+                basePreview.setImage(Ui.image(data));
+            }
+        });
+        Button remove = Ui.button("Remover", Feather.TRASH_2, Styles.FLAT, Styles.DANGER, Styles.SMALL);
+        remove.setOnAction(e -> {
+            baseImage = null;
+            basePreview.setImage(null);
+        });
+        remove.disableProperty().bind(basePreview.imageProperty().isNull());
+        return new VBox(6, new HBox(8, choose, remove), basePreview);
+    }
+
+    /** Abre o seletor de arquivos e lê a imagem escolhida (ou null). */
+    private static byte[] chooseImage() {
+        FileChooser fc = new FileChooser();
+        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Imagens", "*.png", "*.jpg", "*.jpeg"));
+        File file = fc.showOpenDialog(Ui.owner());
+        if (file == null) return null;
+        try {
+            return Files.readAllBytes(file.toPath());
+        } catch (IOException ex) {
+            Ui.showError(ex);
+            return null;
+        }
     }
 
     private void setImage(byte[] data) {
@@ -262,9 +315,23 @@ public final class QuestionEditor {
         correct.setToggleGroup(correctGroup);
         correct.setSelected(a.isCorrect());
         Button remove = Ui.iconButton(Feather.X, "Remover alternativa", Styles.DANGER);
-        HBox box = new HBox(10, letter, text, new VBox(6, correct, remove));
+        Button pickImage = Ui.iconButton(Feather.IMAGE, "Anexar imagem à alternativa");
+        Button dropImage = Ui.iconButton(Feather.SLASH, "Remover imagem da alternativa");
+        VBox content = new VBox(6, text);
+        HBox.setHgrow(content, Priority.ALWAYS);
+        HBox box = new HBox(10, letter, content, new VBox(6, correct, new HBox(2, pickImage, dropImage, remove)));
         box.getStyleClass().add("alt-row");
         AltRow row = new AltRow(letter, text, correct, remove, box);
+        row.thumb.setPreserveRatio(true);
+        row.thumb.setFitWidth(220);
+        content.getChildren().add(row.thumb);
+        row.setImage(a.getImage());
+        pickImage.setOnAction(e -> {
+            byte[] data = chooseImage();
+            if (data != null) row.setImage(data);
+        });
+        dropImage.setOnAction(e -> row.setImage(null));
+        dropImage.disableProperty().bind(row.thumb.imageProperty().isNull());
         remove.setOnAction(e -> {
             rows.remove(row);
             altBox.getChildren().remove(box);
@@ -279,10 +346,10 @@ public final class QuestionEditor {
         boolean tf = trueFalse.isSelected();
         for (int i = 0; i < rows.size(); i++) {
             AltRow r = rows.get(i);
-            r.letter().setText(tf ? (i == 0 ? "C" : "E") : String.valueOf((char) ('A' + i)));
-            r.text().setEditable(!tf);
-            r.text().setPrefRowCount(tf ? 1 : 2);
-            r.remove().setVisible(!tf);
+            r.letter.setText(tf ? (i == 0 ? "C" : "E") : String.valueOf((char) ('A' + i)));
+            r.text.setEditable(!tf);
+            r.text.setPrefRowCount(tf ? 1 : 2);
+            r.remove.setVisible(!tf);
         }
         addAlt.setDisable(tf || rows.size() >= 5);
     }
@@ -292,7 +359,7 @@ public final class QuestionEditor {
         target.setStatement(statement.getText());
         target.getAlternatives().clear();
         for (AltRow r : rows) {
-            target.addAlternative(r.letter().getText(), r.text().getText(), r.correct().isSelected());
+            target.addAlternative(r.letter.getText(), r.text.getText(), r.correct.isSelected()).setImage(r.image);
         }
         target.setAnnulled(annulled.isSelected());
         target.setTrueFalse(trueFalse.isSelected());
@@ -310,13 +377,17 @@ public final class QuestionEditor {
         draft.setSubjectName(Texts.blankToNull(subj));
 
         BaseTextDraft current = draft.getBaseText();
-        if (baseText.getText().isBlank()) {
+        if (baseText.getText().isBlank() && baseImage == null) {
             draft.setBaseText(null);
         } else if (current != null) {
             current.setContent(baseText.getText());
             current.setSource(baseSource.getText());
+            current.setImage(baseImage);
+            current.getFigures().clear();
         } else {
-            draft.setBaseText(new BaseTextDraft(null, baseText.getText(), baseSource.getText()));
+            BaseTextDraft b = new BaseTextDraft(null, baseText.getText(), baseSource.getText());
+            b.setImage(baseImage);
+            draft.setBaseText(b);
         }
         draft.setImage(image);
 

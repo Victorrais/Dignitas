@@ -18,6 +18,11 @@ public class BaseText {
     @Column(length = 1000)
     private String source;
 
+    /** Texto-base em forma de imagem (charge, cartaz, gráfico) ou imagem que acompanha o texto. */
+    @Lob
+    @Column(name = "image", columnDefinition = "LONGBLOB")
+    private byte[] image;
+
     public BaseText() {
     }
 
@@ -44,5 +49,13 @@ public class BaseText {
 
     public void setSource(String source) {
         this.source = source;
+    }
+
+    public byte[] getImage() {
+        return image;
+    }
+
+    public void setImage(byte[] image) {
+        this.image = image;
     }
 }

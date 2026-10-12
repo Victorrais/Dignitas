@@ -331,8 +331,13 @@ class ReviewPane extends BorderPane {
                     a -> title.getChildren().add(Ui.badge("Gabarito " + a.getLetter(), "accent")),
                     () -> title.getChildren().add(Ui.badge("Sem gabarito", "warning")));
             title.getChildren().add(Ui.badge(q.isTrueFalse() ? "Certo/Errado" : q.getAlternatives().size() + " alternativas", null));
-            if (q.getBaseText() != null) title.getChildren().add(Ui.badge("Texto-base", null));
+            if (q.getBaseText() != null) {
+                title.getChildren().add(Ui.badge(q.getBaseText().getImage() != null ? "Texto-base com imagem" : "Texto-base", null));
+            }
             if (q.getImage() != null) title.getChildren().add(Ui.badge("Imagem", null));
+            if (q.getAlternatives().stream().anyMatch(a -> a.getImage() != null)) {
+                title.getChildren().add(Ui.badge("Alternativas com imagem", "accent"));
+            }
             if (q.isOcr()) title.getChildren().add(Ui.badge("OCR", null));
 
             Label snippet = Ui.wrapped(Texts.abbreviate(q.getStatement(), 180), "cell-subtitle");

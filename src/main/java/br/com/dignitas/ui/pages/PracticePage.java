@@ -61,7 +61,7 @@ public class PracticePage extends DbPage {
     @Override
     protected Node build() {
         Button apply = Ui.button("Aplicar filtros", Feather.FILTER, Styles.ACCENT);
-        apply.setOnAction(e -> applyFilter());
+        apply.setOnAction(e -> applyFilter(true));
         for (ComboBox<?> c : List.of(subject, board, year, status)) c.setPrefWidth(190);
         HBox filters = new HBox(10, subject, board, year, status, apply);
         filters.setAlignment(Pos.CENTER_LEFT);
@@ -84,7 +84,7 @@ public class PracticePage extends DbPage {
                     Combos.setOptions(subject, s);
                     Combos.setOptions(board, b);
                     Combos.setOptions(year, y);
-                    if (queue == null) applyFilter();
+                    if (queue == null) applyFilter(false);
                 });
     }
 
@@ -93,8 +93,12 @@ public class PracticePage extends DbPage {
                 board.getValue(), year.getValue(), null, status.getValue(), Sort.RECENT, true);
     }
 
-    private void applyFilter() {
-        explicitQuestion = null;
+    /**
+     * Monta a fila de questões do filtro. Se foi o usuário quem pediu, mostra a primeira; se foi o
+     * carregamento automático e uma questão específica está aberta ("Ver questão"), mantém essa questão.
+     */
+    private void applyFilter(boolean userAction) {
+        if (userAction) explicitQuestion = null;
         Async.run(() -> Services.QUESTIONS.ids(filter()), ids -> {
             queue = new ArrayList<>(ids);
             Collections.shuffle(queue);
@@ -106,17 +110,19 @@ public class PracticePage extends DbPage {
 
     public void openQuestion(long id) {
         explicitQuestion = id;
-        Async.run(() -> Services.QUESTIONS.loadFull(id), this::render);
+        Async.run(() -> Services.QUESTIONS.loadFull(id), q -> {
+            if (Long.valueOf(id).equals(explicitQuestion)) render(q); // ignora respostas atrasadas
+        });
     }
 
     private void showCurrent() {
         if (queue == null || position >= queue.size()) {
             Button restart = Ui.button("Recomeçar", Feather.REFRESH_CW, Styles.ACCENT);
-            restart.setOnAction(e -> applyFilter());
+            restart.setOnAction(e -> applyFilter(true));
             Button all = Ui.button("Ver todas as questões", Feather.LIST, Styles.BUTTON_OUTLINED);
             all.setOnAction(e -> {
                 status.setValue(Status.ALL);
-                applyFilter();
+                applyFilter(true);
             });
             boolean empty = queue == null || queue.isEmpty();
             holder.getChildren().setAll(Ui.card(Ui.emptyState(empty ? Feather.SEARCH : Feather.AWARD,
@@ -127,7 +133,9 @@ public class PracticePage extends DbPage {
             return;
         }
         long id = queue.get(position);
-        Async.run(() -> Services.QUESTIONS.loadFull(id), this::render);
+        Async.run(() -> Services.QUESTIONS.loadFull(id), q -> {
+            if (explicitQuestion == null) render(q); // uma questão aberta pelo usuário tem prioridade
+        });
     }
 
     private void next() {
@@ -174,22 +182,18 @@ public class PracticePage extends DbPage {
 
         BaseText bt = q.getBaseText();
         if (bt != null) {
-            VBox base = new VBox(Ui.label("TEXTO DE APOIO", "nav-section"), Ui.wrapped(bt.getContent(), "base-text-body"));
+            VBox base = new VBox(Ui.label("TEXTO DE APOIO", "nav-section"));
             ((Label) base.getChildren().getFirst()).setStyle("-fx-padding: 0;");
+            if (bt.getContent() != null && !bt.getContent().isBlank()) {
+                base.getChildren().add(Ui.wrapped(bt.getContent(), "base-text-body"));
+            }
+            if (bt.getImage() != null) base.getChildren().add(picture(bt.getImage(), card, 76));
             if (bt.getSource() != null) base.getChildren().add(Ui.wrapped(bt.getSource(), "source"));
             base.getStyleClass().add("base-text");
             card.getChildren().add(base);
         }
-        if (q.getImage() != null) {
-            ImageView iv = new ImageView(Ui.image(q.getImage()));
-            iv.setPreserveRatio(true);
-            iv.fitWidthProperty().bind(javafx.beans.binding.Bindings.min(iv.getImage().getWidth(),
-                    card.widthProperty().subtract(44)));
-            StackPane frame = new StackPane(iv);
-            frame.setAlignment(Pos.CENTER_LEFT);
-            card.getChildren().add(frame);
-        }
-        card.getChildren().add(Ui.wrapped(q.getStatement(), "statement"));
+        if (q.getImage() != null) card.getChildren().add(picture(q.getImage(), card, 44));
+        if (!q.getStatement().isBlank()) card.getChildren().add(Ui.wrapped(q.getStatement(), "statement"));
 
         VBox alts = new VBox(10);
         for (Alternative a : q.getAlternatives()) {
@@ -220,12 +224,35 @@ public class PracticePage extends DbPage {
     }
 
     /** Alternativa como cartão clicável (um HBox quebra o texto longo corretamente). */
+    /** Imagem no tamanho natural, reduzida para caber na largura do cartão. */
+    private static Node picture(byte[] data, VBox card, double margin) {
+        ImageView iv = new ImageView(Ui.image(data));
+        iv.setPreserveRatio(true);
+        iv.fitWidthProperty().bind(javafx.beans.binding.Bindings.min(iv.getImage().getWidth(),
+                card.widthProperty().subtract(margin)));
+        iv.getStyleClass().add("question-image");
+        StackPane frame = new StackPane(iv);
+        frame.setAlignment(Pos.CENTER_LEFT);
+        return frame;
+    }
+
     private HBox altButton(Alternative a) {
         Label letter = Ui.label(a.getLetter(), "alt-letter");
-        Label text = Ui.wrapped(a.getStatement(), "alt-text");
-        text.setMaxWidth(Double.MAX_VALUE);
-        HBox.setHgrow(text, Priority.ALWAYS);
-        HBox b = new HBox(14, letter, text);
+        VBox body = new VBox(8);
+        if (!a.getStatement().isBlank()) {
+            Label text = Ui.wrapped(a.getStatement(), "alt-text");
+            text.setMaxWidth(Double.MAX_VALUE);
+            body.getChildren().add(text);
+        }
+        if (a.getImage() != null) {
+            ImageView iv = new ImageView(Ui.image(a.getImage()));
+            iv.setPreserveRatio(true);
+            iv.setFitWidth(Math.min(iv.getImage().getWidth(), 420));
+            body.getChildren().add(iv);
+        }
+        body.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(body, Priority.ALWAYS);
+        HBox b = new HBox(14, letter, body);
         b.setAlignment(Pos.CENTER_LEFT);
         b.getStyleClass().add("alt-button");
         b.setUserData(a);

@@ -10,6 +10,31 @@ public final class SamplePdfs {
     private SamplePdfs() {
     }
 
+    /** Prova no formato ENEM com texto-base em imagem e alternativas em imagem. */
+    static void enemStyle(File dir) throws Exception {
+        TestPdf pdf = new TestPdf();
+        pdf.bold(0, 40, 50, "CIÊNCIAS DA NATUREZA E SUAS TECNOLOGIAS");
+        pdf.text(0, 40, 80, "Texto para as Questões de 01 a 02.");
+        pdf.image(0, 60, 90, 220, 110, java.awt.Color.LIGHT_GRAY);
+        pdf.text(0, 40, 215, "Disponível em: www.exemplo.com.br. Acesso em: 1 jan. 2025.");
+        pdf.bold(0, 40, 245, "QUESTÃO 01");
+        pdf.block(0, 40, 263, "Com base na figura, o fenômeno representado é a");
+        pdf.block(0, 40, 280, "A fotossíntese.", "B respiração celular.", "C fermentação.", "D transpiração.", "E germinação.");
+        pdf.bold(0, 40, 370, "QUESTÃO 02");
+        pdf.text(0, 40, 388, "Qual gráfico representa corretamente a situação descrita no texto?");
+        java.awt.Color[] colors = {new java.awt.Color(0xE57373), new java.awt.Color(0x81C784), new java.awt.Color(0x64B5F6),
+                new java.awt.Color(0xFFB74D), new java.awt.Color(0xBA68C8)};
+        for (int i = 0; i < 5; i++) {
+            float y = 425 + i * 50;
+            pdf.text(0, 40, y, String.valueOf((char) ('A' + i)));
+            pdf.image(0, 60, y - 18, 120, 40, colors[i]);
+        }
+        pdf.save(dir, "enem-imagens.pdf");
+        TestPdf key = new TestPdf();
+        key.block(0, 60, 80, "GABARITO", "01 - A   02 - D");
+        key.save(dir, "enem-imagens-gabarito.pdf");
+    }
+
     public static void main(String[] args) throws Exception {
         File dir = new File(args.length > 0 ? args[0] : ".");
         dir.mkdirs();
@@ -76,6 +101,7 @@ public final class SamplePdfs {
         TestPdf key = new TestPdf();
         key.block(0, 60, 80, "GABARITO DEFINITIVO", "1 2 3 4 5 6", "B A C C B X");
         key.save(dir, "gabarito-exemplo.pdf");
+        enemStyle(dir);
         System.out.println("PDFs gerados em " + dir.getAbsolutePath());
     }
 }

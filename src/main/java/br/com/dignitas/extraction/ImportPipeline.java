@@ -40,31 +40,34 @@ public class ImportPipeline {
         String hash = Texts.sha256(Files.readAllBytes(pdf.toPath()));
 
         int[] ocrPages = {0};
-        List<PageContent> pages;
+        List<QuestionDraft> questions;
         int pageCount;
+        int applied = 0;
         try (PDDocument doc = Loader.loadPDF(pdf)) {
             pageCount = doc.getNumberOfPages();
-            pages = readPages(doc, mode, ocr, progress, cancelled, warnings, ocrPages, "Lendo prova");
-        }
-        if (cancelled.getAsBoolean()) throw new CancellationException();
+            List<PageContent> pages = readPages(doc, mode, ocr, progress, cancelled, warnings, ocrPages, "Lendo prova");
+            if (cancelled.getAsBoolean()) throw new CancellationException();
 
-        progress.update(pageCount, pageCount, "Identificando questões…");
-        List<QuestionDraft> questions = new QuestionSegmenter().segment(layout.analyze(pages));
-        if (questions.isEmpty()) {
-            warnings.add("Nenhuma questão foi identificada. Confira se o PDF tem texto legível "
-                    + "ou tente o modo \"Forçar OCR\".");
-        }
-
-        int applied = 0;
-        if (answerKey != null) {
-            try (PDDocument doc = Loader.loadPDF(answerKey)) {
-                List<PageContent> keyPages = readPages(doc, mode, ocr, progress, cancelled, warnings, new int[1], "Lendo gabarito");
-                Map<Integer, String> key = new AnswerKeyParser().parse(layout.analyze(keyPages));
-                if (key.isEmpty()) warnings.add("Não foi possível ler respostas no arquivo de gabarito.");
-                applied = AnswerKeyParser.apply(key, questions);
+            progress.update(pageCount, pageCount, "Identificando questões…");
+            questions = new QuestionSegmenter().segment(layout.analyze(pages));
+            if (questions.isEmpty()) {
+                warnings.add("Nenhuma questão foi identificada. Confira se o PDF tem texto legível "
+                        + "ou tente o modo \"Forçar OCR\".");
             }
-        } else {
-            warnings.add("Sem gabarito: marque a alternativa correta de cada questão na revisão.");
+
+            if (answerKey != null) {
+                try (PDDocument keyDoc = Loader.loadPDF(answerKey)) {
+                    List<PageContent> keyPages = readPages(keyDoc, mode, ocr, progress, cancelled, warnings, new int[1], "Lendo gabarito");
+                    AnswerKeyParser.AnswerKey key = new AnswerKeyParser().parse(keyPages);
+                    if (key.isEmpty()) warnings.add("Não foi possível ler respostas no arquivo de gabarito.");
+                    applied = AnswerKeyParser.apply(key, questions);
+                }
+            } else {
+                warnings.add("Sem gabarito: marque a alternativa correta de cada questão na revisão.");
+            }
+
+            progress.update(pageCount, pageCount, "Recortando figuras…");
+            new FigureRenderer(doc).render(questions);
         }
 
         Set<String> seen = new HashSet<>();

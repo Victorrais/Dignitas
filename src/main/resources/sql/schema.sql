@@ -32,7 +32,8 @@ CREATE TABLE IF NOT EXISTS import_batch (
 CREATE TABLE IF NOT EXISTS base_text (
     id       BIGINT AUTO_INCREMENT PRIMARY KEY,
     content  MEDIUMTEXT NOT NULL,
-    source   VARCHAR(1000)
+    source   VARCHAR(1000),
+    image    LONGBLOB
 ) ENGINE = InnoDB;
 
 CREATE TABLE IF NOT EXISTS question (
@@ -63,6 +64,7 @@ CREATE TABLE IF NOT EXISTS alternative (
     letter       CHAR(1) NOT NULL,
     statement    TEXT NOT NULL,
     is_answer    BOOLEAN NOT NULL DEFAULT FALSE,
+    image        LONGBLOB,
     CONSTRAINT fk_alternative_question FOREIGN KEY (question_id) REFERENCES question (id) ON DELETE CASCADE
 ) ENGINE = InnoDB;
 

@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -25,6 +27,31 @@ public final class SchemaInstaller {
         try (Statement st = connection.createStatement()) {
             for (String sql : statements()) {
                 st.execute(sql);
+            }
+            migrate(connection, st);
+        }
+    }
+
+    /** Colunas acrescentadas depois da primeira versão: bancos já criados recebem-nas aqui. */
+    private static void migrate(Connection c, Statement st) throws SQLException {
+        addColumnIfMissing(c, st, "alternative", "image", "LONGBLOB");
+        addColumnIfMissing(c, st, "base_text", "image", "LONGBLOB");
+    }
+
+    private static void addColumnIfMissing(Connection c, Statement st, String table, String column, String type)
+            throws SQLException {
+        DatabaseMetaData md = c.getMetaData();
+        for (String t : new String[]{table, table.toUpperCase()}) {
+            try (ResultSet rs = md.getColumns(c.getCatalog(), null, t, null)) {
+                boolean tableFound = false;
+                while (rs.next()) {
+                    tableFound = true;
+                    if (rs.getString("COLUMN_NAME").equalsIgnoreCase(column)) return;
+                }
+                if (tableFound) {
+                    st.execute("ALTER TABLE " + table + " ADD COLUMN " + column + " " + type);
+                    return;
+                }
             }
         }
     }

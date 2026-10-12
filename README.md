@@ -35,21 +35,36 @@ Em desenvolvimento (versão 2.0: reescrita em JavaFX).
 A extração não depende de um modelo fixo de prova, porque os layouts mudam a cada ano e a cada banca.
 
 1. **Leitura por página** (`extraction/PdfTextExtractor`): o PDFBox entrega cada caractere com sua posição.
-   As linhas são montadas a partir dessas posições, e não do texto corrido, para não misturar colunas lado a lado.
+   As linhas são montadas a partir dessas posições, e não do texto corrido. A calha entre colunas é
+   detectada pela posição dos caracteres (funciona mesmo com só ~12 pt entre colunas, como no ENEM).
+   Microtexto de segurança e marcas fora da página são descartados. As figuras (imagens rasterizadas)
+   são localizadas (`extraction/PdfImageLocator`) e entram na ordem de leitura.
 2. **OCR quando necessário** (`extraction/OcrEngine`): páginas sem texto legível (digitalizadas ou com fontes
    sem mapeamento de caracteres) são renderizadas a 300 dpi e lidas pelo Tesseract.
    O resultado tem o mesmo formato do texto nativo.
 3. **Layout** (`extraction/LayoutAnalyzer`): remove cabeçalhos e rodapés repetidos, detecta a calha entre
-   colunas e lê a coluna da esquerda antes da direita.
+   colunas e lê a coluna da esquerda antes da direita. Quadros com duas colunas dentro de uma página de
+   coluna única também são lidos coluna por coluna.
 4. **Segmentação** (`extraction/QuestionSegmenter`): reconhece padrões comuns às bancas.
-   - Rótulos de questão: "Questão 12", "12.", "12 –".
-   - Alternativas: "(A)", "A)", "a.", inclusive várias na mesma linha.
+   - Rótulos de questão: "Questão 12", "QUESTÃO 12", "12.", "12 –". Quando a prova usa rótulos,
+     números soltos (instruções da capa, números de linha dos textos) não abrem questões.
+   - Alternativas: "(A)", "A)", "a.", inclusive várias na mesma linha, e só a letra ("A texto…", estilo ENEM),
+     reconhecida pela sequência A–E alinhada (um enunciado como "A autora conclui…" não vira alternativa).
+   - **Alternativas em imagem**: a figura ao lado da letra vira a imagem da alternativa.
+   - **Texto compartilhado**: "Texto para as questões de 06 a 10" vale, individualmente, para cada questão da
+     faixa; o texto-base pode ser só imagem (charge, cartaz) ou texto com imagem.
+   - Texto da própria questão: o que vem antes da referência ("SOBRENOME, N. …", "Disponível em: …") vira o
+     texto-base da questão, e o restante, o comando. TEXTO I / TEXTO II dentro da questão são mantidos.
+   - Números de linha à margem dos textos são removidos.
+   - Opção de língua estrangeira ("Questões de 01 a 05 (opção inglês/espanhol)") vira a disciplina.
+   - "Proposta de Redação" e similares encerram a leitura até a próxima área.
    - Itens de Certo/Errado (estilo Cebraspe).
    - Textos-base compartilhados: "Texto I", "Leia o texto… questões 1 a 3".
    - Fontes: "Disponível em:", "(Adaptado)".
    - Títulos de disciplina.
-5. **Gabarito** (`extraction/AnswerKeyParser`): lê pares ("01 - A") e tabelas (linha de números + linha de
-   respostas). "X", "*" e "ANULADA" marcam a questão como anulada.
+5. **Gabarito** (`extraction/AnswerKeyParser`): lê pares ("01 - A"), tabelas (linha de números + linha de
+   respostas) e tabelas com duas colunas de resposta (ENEM: Inglês e Espanhol; as questões da opção de
+   Espanhol usam a segunda). "X", "*" e "ANULADA" marcam a questão como anulada.
 6. **Revisão obrigatória:** a página do PDF aparece ao lado das questões extraídas, com a área de cada questão destacada.
    - Questões incompletas, duvidosas ou duplicadas ficam sinalizadas.
    - Dá para editar, mesclar, remover e anexar o recorte da página como imagem.
@@ -58,16 +73,17 @@ A extração não depende de um modelo fixo de prova, porque os layouts mudam a 
 ## Banco de dados
 
 O esquema fica em [`src/main/resources/sql/schema.sql`](src/main/resources/sql/schema.sql) e é a fonte da verdade
-(o Hibernate não altera tabelas). O script é aplicado automaticamente ao conectar e pode ser executado várias vezes.
+(o Hibernate não altera tabelas). O script é aplicado automaticamente ao conectar e pode ser executado várias vezes;
+bancos criados por versões anteriores recebem as colunas novas (`SchemaInstaller`).
 
 | Tabela | Conteúdo |
 |---|---|
 | `exam` | concurso: nome, banca, ano, cargo |
 | `subject` | disciplina |
 | `import_batch` | PDF importado (hash único: impede importar o mesmo arquivo duas vezes) |
-| `base_text` | texto de apoio, compartilhável entre questões |
+| `base_text` | texto de apoio (texto e/ou imagem), compartilhável entre questões |
 | `question` | enunciado, número, imagem, anulada, marcada, hash de conteúdo (impede duplicadas) |
-| `alternative` | letra, texto e se é a correta |
+| `alternative` | letra, texto, imagem e se é a correta |
 | `attempt` | cada resposta do usuário, com data e acerto |
 
 Excluir uma importação remove em cascata as questões, alternativas e respostas ligadas a ela.
@@ -111,6 +127,21 @@ Também é possível apontar outra pasta em Configurações. Depois disso, o OCR
 - `ExtractionTest`: gera PDFs com o próprio PDFBox e verifica a extração com uma e duas colunas,
   cabeçalho repetido, texto-base compartilhado, Certo/Errado e os formatos de gabarito.
 
+### Validação com o ENEM 2025
+
+O caderno 1 (Azul) do 1º dia do ENEM 2025 (INEP) foi usado como prova real: 32 páginas, duas colunas,
+textos compartilhados, figuras, números de linha e gabarito com colunas de Inglês e Espanhol. Resultado:
+**95 de 95 questões** (90 + 5 da opção de Espanhol) extraídas com texto-base, fonte, comando, 5 alternativas e
+a resposta igual à do gabarito oficial em todas; importadas no MySQL e lidas de volta pela aplicação.
+
+Ferramentas de desenvolvimento (em `src/test`), úteis para estudar novas provas:
+
+- `extraction.PdfInspect <pdf> <pasta> [dpi]`: renderiza as páginas e despeja linhas e figuras com coordenadas.
+- `extraction.ImportReport <prova.pdf> <gabarito.pdf|-> <pasta>`: roda a importação e gera um relatório de cada
+  questão, com as imagens recortadas.
+- `MySqlImportCheck`: importa uma prova num MySQL real (credenciais em `DIGNITAS_DB_USER`/`DIGNITAS_DB_PASSWORD`).
+- `UiSnapshot`: renderiza telas fora da tela (sem abrir janela) para conferência visual.
+
 Para abrir a interface sem um servidor MySQL (banco H2 em memória com questões de exemplo), rode a classe de teste
 `br.com.dignitas.DevLauncher` pela IDE.
 
@@ -130,7 +161,8 @@ src/main/java/br/com/dignitas/
 ## Limitações conhecidas
 
 - A identificação é heurística: provas com formatação incomum podem exigir correções na tela de revisão.
-- Figuras, gráficos e tabelas não são reconstruídos. Use "Anexar recorte" para guardar a imagem da área da questão.
+- Só imagens rasterizadas são reconhecidas como figuras automaticamente; gráficos e tabelas desenhados em vetor
+  ficam como texto. Use "Anexar recorte" na revisão para guardar a imagem da área da questão.
 - O OCR perde qualidade em fórmulas, sobrescritos e digitalizações de baixa resolução.
 - Se o gabarito tiver vários tipos de prova, vale a primeira ocorrência de cada número. Use o gabarito do caderno certo.
 
