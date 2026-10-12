@@ -1,4 +1,15 @@
-# Dignitas
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="src/main/resources/icons/dignitas-dark-256.png">
+    <img src="src/main/resources/icons/dignitas-light-256.png" alt="Ícone do Dignitas: um polvo roxo" width="160">
+  </picture>
+</p>
+
+<h1 align="center">Dignitas</h1>
+
+<p align="center">
+  <a href="https://github.com/Victorrais/Dignitas/releases/latest"><b>Baixar para Windows</b></a>
+</p>
 
 Aplicação desktop para **organizar, extrair e resolver questões de concursos públicos**.
 O Dignitas importa provas em PDF (com texto ou digitalizadas), identifica as questões automaticamente,
