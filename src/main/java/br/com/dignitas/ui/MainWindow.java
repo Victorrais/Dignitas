@@ -6,6 +6,7 @@ import br.com.dignitas.app.AppConfig;
 import br.com.dignitas.persistence.Jpa;
 import br.com.dignitas.persistence.SchemaInstaller;
 import br.com.dignitas.service.Dtos.Status;
+import br.com.dignitas.service.SampleData;
 import br.com.dignitas.ui.pages.*;
 import javafx.application.Application;
 import javafx.geometry.Pos;
@@ -207,23 +208,29 @@ public class MainWindow {
         return connected;
     }
 
-    /** Cria as tabelas se necessário e inicializa o Hibernate com as configurações salvas. */
+    /**
+     * Cria as tabelas se necessário e inicializa o Hibernate com as configurações salvas.
+     * Na primeira abertura do banco local, insere as questões de exemplo para o app não começar vazio.
+     */
     public void connect(Runnable onDone) {
         AppConfig cfg = AppConfig.get();
-        setStatus(false, "Conectando a " + cfg.dbHost() + "…");
+        boolean local = cfg.localDatabase();
+        boolean bancoNovo = local && !cfg.localDatabaseExists();
+        setStatus(false, local ? "Abrindo o banco local…" : "Conectando a " + cfg.dbHost() + "…");
         Async.run(() -> {
-            SchemaInstaller.install(cfg.jdbcUrl(), cfg.dbUser(), cfg.dbPassword());
+            SchemaInstaller.install(cfg.connectionUrl(), cfg.connectionUser(), cfg.connectionPassword());
             Jpa.init(cfg);
+            if (bancoNovo) SampleData.insert(Services.QUESTIONS);
             return true;
         }, ok -> {
-            setStatus(true, "MySQL conectado · " + cfg.dbName());
+            setStatus(true, cfg.databaseLabel());
             if (onDone != null) onDone.run();
             refresh();
         }, err -> {
             Jpa.shutdown();
             Throwable root = err;
             while (root.getCause() != null) root = root.getCause();
-            setStatus(false, "MySQL desconectado");
+            setStatus(false, cfg.localDatabase() ? "Banco local indisponível" : "MySQL desconectado");
             System.err.println("Falha ao conectar: " + root);
             if (onDone != null) onDone.run();
             refresh();

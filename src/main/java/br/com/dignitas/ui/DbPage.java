@@ -8,7 +8,7 @@ import org.kordamp.ikonli.feather.Feather;
 
 /**
  * Tela que depende do banco: mostra um aviso com atalho para as Configurações
- * enquanto o MySQL não estiver conectado.
+ * enquanto o banco de dados não estiver conectado.
  */
 public abstract class DbPage implements Page {
     protected final MainWindow app;
@@ -36,7 +36,7 @@ public abstract class DbPage implements Page {
             Button settings = Ui.button("Abrir Configurações", Feather.SETTINGS, Styles.ACCENT);
             settings.setOnAction(e -> app.go(MainWindow.Nav.SETTINGS));
             root.getChildren().setAll(Ui.emptyState(Feather.DATABASE, "Banco de dados desconectado",
-                    "Não foi possível conectar ao MySQL. Confira o servidor, o usuário e a senha nas Configurações.",
+                    "Não foi possível abrir o banco de dados. Confira o modo e os dados de conexão nas Configurações.",
                     settings));
             return;
         }

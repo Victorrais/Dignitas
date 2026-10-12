@@ -59,6 +59,54 @@ public final class AppConfig {
 
     // ---- Banco de dados ----
 
+    /**
+     * Banco local (H2 embutido, num arquivo da pasta de dados) ou servidor MySQL.
+     * Instalações novas começam no banco local, que não exige instalar nada; quem já
+     * tinha um MySQL configurado (db.host salvo) continua nele.
+     */
+    public boolean localDatabase() {
+        String mode = props.getProperty("db.mode");
+        if (mode != null) return !"mysql".equals(mode);
+        return !props.containsKey("db.host");
+    }
+
+    public void setLocalDatabase(boolean local) {
+        props.setProperty("db.mode", local ? "local" : "mysql");
+    }
+
+    /** Arquivo do banco local, sem a extensão .mv.db que o H2 acrescenta. */
+    public Path localDatabaseFile() {
+        return dir.resolve("banco").resolve("dignitas");
+    }
+
+    public boolean localDatabaseExists() {
+        return Files.exists(dir.resolve("banco").resolve("dignitas.mv.db"));
+    }
+
+    /** URL JDBC efetiva, conforme o modo escolhido. */
+    public String connectionUrl() {
+        if (!localDatabase()) return jdbcUrl();
+        String file = localDatabaseFile().toAbsolutePath().toString().replace('\\', '/');
+        return "jdbc:h2:file:" + file + ";MODE=MySQL;DATABASE_TO_LOWER=TRUE";
+    }
+
+    public String connectionUser() {
+        return localDatabase() ? "sa" : dbUser();
+    }
+
+    public String connectionPassword() {
+        return localDatabase() ? "" : dbPassword();
+    }
+
+    public String jdbcDriver() {
+        return localDatabase() ? "org.h2.Driver" : "com.mysql.cj.jdbc.Driver";
+    }
+
+    /** Rótulo curto do banco em uso, para a barra de status. */
+    public String databaseLabel() {
+        return localDatabase() ? "Banco local" : "MySQL · " + dbName();
+    }
+
     public String dbHost() {
         return props.getProperty("db.host", "localhost");
     }

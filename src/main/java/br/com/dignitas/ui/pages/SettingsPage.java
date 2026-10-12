@@ -28,6 +28,10 @@ public class SettingsPage implements Page {
     private final TextField database = new TextField();
     private final TextField user = new TextField();
     private final PasswordField password = new PasswordField();
+    private final RadioButton modoLocal = new RadioButton("Banco local: portátil, não precisa instalar nada");
+    private final RadioButton modoMysql = new RadioButton("Servidor MySQL");
+    private final GridPane mysqlGrid = new GridPane(12, 10);
+    private final Button test = Ui.button("Testar conexão", Feather.ACTIVITY, Styles.BUTTON_OUTLINED);
     private final Label dbStatus = new Label();
     private final Label ocrStatus = new Label();
     private final Button sample = Ui.button("Inserir questões de exemplo", Feather.PLUS, Styles.BUTTON_OUTLINED);
@@ -52,6 +56,8 @@ public class SettingsPage implements Page {
         database.setText(cfg.dbName());
         user.setText(cfg.dbUser());
         password.setText(cfg.dbPassword());
+        (cfg.localDatabase() ? modoLocal : modoMysql).setSelected(true);
+        atualizarModo();
         updateDbStatus();
         updateOcrStatus();
     }
@@ -59,7 +65,14 @@ public class SettingsPage implements Page {
     // ---------- Banco ----------
 
     private Node databaseCard() {
-        GridPane grid = new GridPane(12, 10);
+        ToggleGroup modo = new ToggleGroup();
+        modoLocal.setToggleGroup(modo);
+        modoMysql.setToggleGroup(modo);
+        modo.selectedToggleProperty().addListener((obs, antes, agora) -> atualizarModo());
+        Label localHint = Ui.wrapped("Os dados ficam num arquivo em " + cfg.localDatabaseFile().getParent()
+                + ". Bom para testar ou usar em um só computador.", "hint");
+
+        GridPane grid = mysqlGrid;
         grid.addRow(0, Ui.label("Servidor", "form-label"), host, Ui.label("Porta", "form-label"), port);
         grid.addRow(1, Ui.label("Banco", "form-label"), database);
         grid.addRow(2, Ui.label("Usuário", "form-label"), user, Ui.label("Senha", "form-label"), password);
@@ -68,7 +81,6 @@ public class SettingsPage implements Page {
         port.setPrefWidth(90);
         host.setPrefWidth(260);
 
-        Button test = Ui.button("Testar conexão", Feather.ACTIVITY, Styles.BUTTON_OUTLINED);
         test.setOnAction(e -> {
             dbStatus.setText("Testando…");
             String url = urlFromForm();
@@ -80,15 +92,18 @@ public class SettingsPage implements Page {
         });
         Button save = Ui.button("Salvar e conectar", Feather.CHECK, Styles.ACCENT);
         save.setOnAction(e -> {
-            int portNumber;
-            try {
-                portNumber = Integer.parseInt(port.getText().strip());
-            } catch (NumberFormatException ex) {
-                showDb(false, "Porta inválida.");
-                return;
+            if (modoMysql.isSelected()) {
+                int portNumber;
+                try {
+                    portNumber = Integer.parseInt(port.getText().strip());
+                } catch (NumberFormatException ex) {
+                    showDb(false, "Porta inválida.");
+                    return;
+                }
+                cfg.setDatabase(host.getText().strip(), portNumber, database.getText().strip(), user.getText().strip(),
+                        password.getText());
             }
-            cfg.setDatabase(host.getText().strip(), portNumber, database.getText().strip(), user.getText().strip(),
-                    password.getText());
+            cfg.setLocalDatabase(modoLocal.isSelected());
             if (!persist()) return;
             dbStatus.setText("Conectando…");
             app.connect(this::updateDbStatus);
@@ -100,10 +115,17 @@ public class SettingsPage implements Page {
         actions.setAlignment(Pos.CENTER_LEFT);
         dbStatus.setWrapText(true);
 
-        return Ui.card(Ui.label("Banco de dados (MySQL)", "card-title"),
+        return Ui.card(Ui.label("Banco de dados", "card-title"),
                 Ui.wrapped("As tabelas são criadas automaticamente ao conectar (script resources/sql/schema.sql). "
                         + "O banco é criado se ainda não existir.", "hint"),
-                grid, actions, dbStatus);
+                modoLocal, localHint, modoMysql, grid, actions, dbStatus);
+    }
+
+    /** Os campos do MySQL só valem no modo servidor. */
+    private void atualizarModo() {
+        boolean mysql = modoMysql.isSelected();
+        mysqlGrid.setDisable(!mysql);
+        test.setDisable(!mysql);
     }
 
     private String urlFromForm() {
@@ -117,8 +139,13 @@ public class SettingsPage implements Page {
     }
 
     private void updateDbStatus() {
-        showDb(app.isConnected(), app.isConnected() ? "Conectado a " + cfg.dbHost() + "/" + cfg.dbName() + "."
-                : "Desconectado. Confira se o MySQL está em execução e se usuário e senha estão corretos.");
+        String conectado = cfg.localDatabase()
+                ? "Usando o banco local (" + cfg.localDatabaseFile().getParent() + ")."
+                : "Conectado a " + cfg.dbHost() + "/" + cfg.dbName() + ".";
+        String desconectado = cfg.localDatabase()
+                ? "Não foi possível abrir o banco local. Feche outras janelas do Dignitas e tente de novo."
+                : "Desconectado. Confira se o MySQL está em execução e se usuário e senha estão corretos.";
+        showDb(app.isConnected(), app.isConnected() ? conectado : desconectado);
     }
 
     private void showDb(boolean ok, String text) {

@@ -23,12 +23,13 @@ public final class Jpa {
     private Jpa() {
     }
 
-    /** Conecta ao MySQL usando as configurações salvas. */
+    /** Conecta ao banco configurado: o local (H2 embutido) ou o MySQL. */
     public static synchronized void init(AppConfig config) {
         Map<String, Object> props = new HashMap<>();
-        props.put("jakarta.persistence.jdbc.url", config.jdbcUrl());
-        props.put("jakarta.persistence.jdbc.user", config.dbUser());
-        props.put("jakarta.persistence.jdbc.password", config.dbPassword());
+        props.put("jakarta.persistence.jdbc.driver", config.jdbcDriver());
+        props.put("jakarta.persistence.jdbc.url", config.connectionUrl());
+        props.put("jakarta.persistence.jdbc.user", config.connectionUser());
+        props.put("jakarta.persistence.jdbc.password", config.connectionPassword());
         init(props);
     }
 

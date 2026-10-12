@@ -8,6 +8,19 @@ deixa você revisar o resultado e guarda tudo num banco MySQL local para estudo 
 
 Em desenvolvimento (versão 2.0: reescrita em JavaFX).
 
+## Para testar: baixe o executável
+
+1. Baixe `Dignitas-Desktop-Windows.zip` na página de [Releases](https://github.com/Victorrais/Dignitas/releases).
+2. Descompacte o arquivo onde quiser.
+3. Abra `Dignitas\Dignitas.exe`.
+
+Não precisa instalar Java nem MySQL. Na primeira vez, o Dignitas cria um **banco local** na pasta do usuário
+(`%APPDATA%\Dignitas\banco`) com algumas questões de exemplo. Para usar um servidor MySQL, escolha
+"Servidor MySQL" em Configurações.
+
+O Windows pode avisar que o programa é de um editor desconhecido. Isso acontece porque o executável não é
+assinado digitalmente. Para abrir mesmo assim, clique em **Mais informações** e depois em **Executar assim mesmo**.
+
 ## Executável para Windows (desktop)
 
 ```bash
@@ -17,7 +30,9 @@ empacotar-desktop.cmd
 O comando gera `target\dist-desktop\Dignitas\Dignitas.exe` e o ZIP `Dignitas-Desktop-Windows.zip`.
 É a versão desktop em JavaFX, com janela própria, sem navegador nem servidor. Ela leva um Java reduzido
 (montado com `jlink`, só com os módulos usados), então não é preciso ter Java instalado.
-Na primeira execução, o próprio app pede os dados do MySQL nas Configurações.
+
+**Banco de dados:** o padrão é o banco local (H2 embutido, em modo compatível com MySQL). Instalações que já
+tinham um MySQL configurado continuam nele. A escolha fica em Configurações > Banco de dados.
 
 ## Versão web
 
