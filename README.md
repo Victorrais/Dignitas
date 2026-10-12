@@ -8,6 +8,17 @@ deixa você revisar o resultado e guarda tudo num banco MySQL local para estudo 
 
 Em desenvolvimento (versão 2.0: reescrita em JavaFX).
 
+## Executável para Windows (desktop)
+
+```bash
+empacotar-desktop.cmd
+```
+
+O comando gera `target\dist-desktop\Dignitas\Dignitas.exe` e o ZIP `Dignitas-Desktop-Windows.zip`.
+É a versão desktop em JavaFX, com janela própria, sem navegador nem servidor. Ela leva um Java reduzido
+(montado com `jlink`, só com os módulos usados), então não é preciso ter Java instalado.
+Na primeira execução, o próprio app pede os dados do MySQL nas Configurações.
+
 ## Versão web
 
 A pasta [`web/`](web/README.md) tem a versão web do Dignitas: API REST em Spring Boot sobre as mesmas regras,
