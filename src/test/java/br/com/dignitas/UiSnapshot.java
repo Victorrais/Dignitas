@@ -61,8 +61,8 @@ public final class UiSnapshot {
             MainWindow.applyTheme(AppConfig.get().darkTheme());
             MainWindow w = new MainWindow();
             Scene s = new Scene(w.root(), 1600, 1000);
-            if ("1".equals(System.getenv("SNAP_COLLAPSE"))) w.toggleSidebar();
-            s.getStylesheets().add(Objects.requireNonNull(UiSnapshot.class.getResource("/css/dignitas.css")).toExternalForm());
+            br.com.dignitas.ui.Ui.applyPalette(s.getStylesheets());
+            if (System.getenv("SNAP_THEME") != null) MainWindow.applyTheme("dark".equals(System.getenv("SNAP_THEME")));
             new Stage().setScene(s); // não é exibida
             w.markConnected("MySQL (snapshot)");
             window.set(w);

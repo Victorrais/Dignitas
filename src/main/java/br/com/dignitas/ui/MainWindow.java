@@ -117,7 +117,13 @@ public class MainWindow {
     }
 
     private VBox sidebar() {
-        StackPane logo = new StackPane(Ui.icon(Feather.BOOK_OPEN, 18));
+        javafx.scene.image.ImageView octopus = new javafx.scene.image.ImageView();
+        octopus.imageProperty().bind(javafx.beans.binding.Bindings.createObjectBinding(
+                () -> Ui.appIcon(Ui.darkProperty().get(), 128), Ui.darkProperty()));
+        octopus.setPreserveRatio(true);
+        octopus.setSmooth(true);
+        octopus.fitWidthProperty().bind(Ui.scaleProperty().multiply(40));
+        StackPane logo = new StackPane(octopus);
         logo.getStyleClass().addAll("brand-logo", "collapsible");
         VBox names = new VBox(0, Ui.label("Dignitas", "brand-name"), Ui.label("Questões de concursos", "brand-tagline"));
         names.getStyleClass().add("collapsible");
@@ -240,5 +246,6 @@ public class MainWindow {
         Application.setUserAgentStylesheet(dark
                 ? new PrimerDark().getUserAgentStylesheet()
                 : new PrimerLight().getUserAgentStylesheet());
+        Ui.darkProperty().set(dark);
     }
 }

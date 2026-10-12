@@ -178,7 +178,7 @@ public class PracticePage extends DbPage {
             meta.getChildren().add(Ui.label((position + 1) + " de " + queue.size(), "hint"));
         }
         ToggleButton flag = new ToggleButton(null, Ui.icon(Feather.BOOKMARK, 16));
-        flag.getStyleClass().addAll(Styles.BUTTON_ICON);
+        flag.getStyleClass().addAll(Styles.BUTTON_ICON, "flag-toggle");
         flag.setSelected(q.isFlagged());
         flag.setTooltip(new Tooltip("Marcar para revisar depois"));
         flag.setOnAction(e -> {

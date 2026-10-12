@@ -15,6 +15,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 import java.util.Optional;
 
 /** Pequenos construtores de componentes usados por todas as telas. */
@@ -33,6 +34,43 @@ public final class Ui {
     private Ui() {
     }
 
+    /** Tema escuro ativo? Janelas, diálogos e ícones acompanham. */
+    private static final javafx.beans.property.BooleanProperty DARK =
+            new javafx.beans.property.SimpleBooleanProperty(br.com.dignitas.app.AppConfig.get().darkTheme());
+    private static final String CSS = resource("/css/dignitas.css");
+    private static final String PALETTE_LIGHT = resource("/css/palette-light.css");
+    private static final String PALETTE_DARK = resource("/css/palette-dark.css");
+    private static final java.util.Map<String, Image> ICONS = new java.util.HashMap<>();
+
+    private static String resource(String path) {
+        return Objects.requireNonNull(Ui.class.getResource(path)).toExternalForm();
+    }
+
+    /** Coloca a folha do app e a paleta do tema atual numa lista de estilos, trocando a paleta com o tema. */
+    public static void applyPalette(javafx.collections.ObservableList<String> stylesheets) {
+        if (!stylesheets.contains(CSS)) stylesheets.add(CSS);
+        Runnable sync = () -> {
+            stylesheets.removeAll(PALETTE_LIGHT, PALETTE_DARK);
+            stylesheets.add(DARK.get() ? PALETTE_DARK : PALETTE_LIGHT);
+        };
+        sync.run();
+        DARK.addListener((o, a, b) -> sync.run());
+    }
+
+    public static javafx.beans.property.BooleanProperty darkProperty() {
+        return DARK;
+    }
+
+    /** Ícone do app (o polvo) na versão do tema: {@code /icons/dignitas-light|dark-<tamanho>.png}. */
+    public static Image appIcon(boolean dark, int size) {
+        String path = "/icons/dignitas-" + (dark ? "dark" : "light") + "-" + size + ".png";
+        return ICONS.computeIfAbsent(path, p -> new Image(Objects.requireNonNull(Ui.class.getResource(p)).toExternalForm()));
+    }
+
+    public static java.util.List<Image> appIcons(boolean dark) {
+        return java.util.stream.IntStream.of(16, 24, 32, 48, 64, 128, 256).mapToObj(s -> appIcon(dark, s)).toList();
+    }
+
     public static javafx.beans.property.DoubleProperty scaleProperty() {
         return SCALE;
     }
@@ -43,6 +81,8 @@ public final class Ui {
 
     /** Aplica (e mantém atualizado) o tamanho de fonte base num nó raiz: janela principal ou diálogo. */
     public static void applyScale(javafx.scene.Parent root) {
+        // Identidade visual: folha de estilos do app e paleta do tema (claro/escuro).
+        applyPalette(root.getStylesheets());
         root.styleProperty().bind(javafx.beans.binding.Bindings.createStringBinding(
                 () -> String.format(java.util.Locale.ROOT, "-fx-font-size: %.2fpx;", BASE_FONT * SCALE.get()), SCALE));
     }

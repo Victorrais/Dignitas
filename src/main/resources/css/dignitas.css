@@ -9,6 +9,9 @@
     -fx-font-family: "Segoe UI", "Inter", "Helvetica Neue", sans-serif;
 }
 
+/* A paleta (roxo do polvo + laranja do tentáculo) fica em palette-light.css / palette-dark.css,
+   aplicadas na cena conforme o tema (Ui.applyScale). */
+
 /* ---------- Estrutura ---------- */
 
 .app-root {
@@ -21,8 +24,8 @@
     -fx-border-width: 0 1 0 0;
     -fx-padding: 1.429em 0.857em 1.143em 0.857em;
     -fx-spacing: 4;
-    -fx-pref-width: 16.857em;
-    -fx-min-width: 16.857em;
+    -fx-pref-width: 18.5em;
+    -fx-min-width: 18.5em;
 }
 
 /* Barra lateral recolhida: só ícones. */
@@ -47,22 +50,13 @@
 }
 
 .brand-logo {
-    -fx-background-color: -color-accent-emphasis;
-    -fx-background-radius: 10;
-    -fx-min-width: 2.571em;
-    -fx-min-height: 2.571em;
-    -fx-max-width: 2.571em;
-    -fx-max-height: 2.571em;
-    -fx-alignment: center;
-}
-
-.brand-logo .ikonli-font-icon {
-    -fx-icon-color: -color-fg-emphasis;
+    -fx-effect: dropshadow(gaussian, rgba(123, 92, 245, 0.35), 8, 0.2, 0, 2);
 }
 
 .brand-name {
     -fx-font-size: 1.286em;
     -fx-font-weight: bold;
+    -fx-text-fill: linear-gradient(to right, -color-accent-emphasis 55%, -dignitas-secondary);
 }
 
 .brand-tagline {
@@ -441,3 +435,24 @@
     -fx-spacing: 10;
     -fx-alignment: top-left;
 }
+
+/* ---------- Cor secundária (laranja do tentáculo) ---------- */
+
+.flag-toggle:selected {
+    -color-button-bg-selected: -dignitas-secondary;
+    -color-button-border-selected: -dignitas-secondary;
+    -color-button-fg-selected: white;
+    -fx-background-color: -dignitas-secondary;
+}
+
+.flag-toggle:selected .ikonli-font-icon {
+    -fx-icon-color: white;
+}
+
+.nav-item:selected {
+    -fx-border-color: transparent transparent transparent -dignitas-secondary;
+    -fx-border-width: 0 0 0 3;
+}
+
+.stat-icon.secondary { -fx-background-color: rgba(245, 158, 75, 0.18); }
+.stat-icon.secondary .ikonli-font-icon { -fx-icon-color: -dignitas-secondary; }
