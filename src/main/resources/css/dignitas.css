@@ -1,0 +1,427 @@
+/*
+ * Dignitas — estilos sobre o tema AtlantaFX (Primer Light/Dark).
+ * As cores vêm das variáveis do tema (-color-*), então claro e escuro funcionam juntos.
+ */
+
+.root {
+    -fx-font-family: "Segoe UI", "Inter", "Helvetica Neue", sans-serif;
+    -fx-font-size: 14px;
+}
+
+/* ---------- Estrutura ---------- */
+
+.app-root {
+    -fx-background-color: -color-bg-subtle;
+}
+
+.sidebar {
+    -fx-background-color: -color-bg-default;
+    -fx-border-color: transparent -color-border-default transparent transparent;
+    -fx-border-width: 0 1 0 0;
+    -fx-padding: 20 12 16 12;
+    -fx-spacing: 4;
+    -fx-pref-width: 236;
+    -fx-min-width: 236;
+}
+
+.brand {
+    -fx-padding: 0 8 20 8;
+    -fx-spacing: 10;
+    -fx-alignment: center-left;
+}
+
+.brand-logo {
+    -fx-background-color: -color-accent-emphasis;
+    -fx-background-radius: 10;
+    -fx-min-width: 36;
+    -fx-min-height: 36;
+    -fx-max-width: 36;
+    -fx-max-height: 36;
+    -fx-alignment: center;
+}
+
+.brand-logo .ikonli-font-icon {
+    -fx-icon-color: -color-fg-emphasis;
+}
+
+.brand-name {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+.brand-tagline {
+    -fx-text-fill: -color-fg-muted;
+    -fx-font-size: 12px;
+}
+
+.nav-section {
+    -fx-text-fill: -color-fg-subtle;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 14 10 6 10;
+}
+
+.nav-item {
+    -fx-background-color: transparent;
+    -fx-background-radius: 8;
+    -fx-border-width: 0;
+    -fx-padding: 9 12 9 12;
+    -fx-graphic-text-gap: 12;
+    -fx-alignment: center-left;
+    -fx-max-width: infinity;
+    -fx-text-fill: -color-fg-muted;
+    -fx-cursor: hand;
+}
+
+.nav-item .ikonli-font-icon {
+    -fx-icon-color: -color-fg-muted;
+}
+
+.nav-item:hover {
+    -fx-background-color: -color-bg-subtle;
+    -fx-text-fill: -color-fg-default;
+}
+
+.nav-item:selected {
+    -fx-background-color: -color-accent-subtle;
+    -fx-text-fill: -color-accent-fg;
+    -fx-font-weight: bold;
+}
+
+.nav-item:selected .ikonli-font-icon {
+    -fx-icon-color: -color-accent-fg;
+}
+
+.connection-status {
+    -fx-padding: 10;
+    -fx-spacing: 8;
+    -fx-alignment: center-left;
+    -fx-background-color: -color-bg-subtle;
+    -fx-background-radius: 8;
+}
+
+.status-dot {
+    -fx-min-width: 8;
+    -fx-min-height: 8;
+    -fx-max-width: 8;
+    -fx-max-height: 8;
+    -fx-background-radius: 4;
+    -fx-background-color: -color-danger-emphasis;
+}
+
+.status-dot.online {
+    -fx-background-color: -color-success-emphasis;
+}
+
+.page {
+    -fx-padding: 28 32 28 32;
+    -fx-spacing: 20;
+}
+
+.page-scroll, .page-scroll > .viewport {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+}
+
+.page-title {
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+}
+
+.page-subtitle {
+    -fx-text-fill: -color-fg-muted;
+}
+
+/* ---------- Cartões ---------- */
+
+.card {
+    -fx-background-color: -color-bg-default;
+    -fx-background-radius: 12;
+    -fx-border-color: -color-border-default;
+    -fx-border-radius: 12;
+    -fx-padding: 20;
+    -fx-spacing: 12;
+}
+
+.card-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+.stat-card {
+    -fx-spacing: 6;
+    -fx-min-width: 180;
+}
+
+.stat-value {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+}
+
+.stat-label {
+    -fx-text-fill: -color-fg-muted;
+    -fx-font-size: 13px;
+}
+
+.stat-icon {
+    -fx-background-radius: 8;
+    -fx-min-width: 34;
+    -fx-min-height: 34;
+    -fx-max-width: 34;
+    -fx-max-height: 34;
+    -fx-alignment: center;
+    -fx-background-color: -color-accent-subtle;
+}
+
+.stat-icon .ikonli-font-icon {
+    -fx-icon-color: -color-accent-fg;
+}
+
+.stat-icon.success { -fx-background-color: -color-success-subtle; }
+.stat-icon.success .ikonli-font-icon { -fx-icon-color: -color-success-fg; }
+.stat-icon.warning { -fx-background-color: -color-warning-subtle; }
+.stat-icon.warning .ikonli-font-icon { -fx-icon-color: -color-warning-fg; }
+.stat-icon.danger { -fx-background-color: -color-danger-subtle; }
+.stat-icon.danger .ikonli-font-icon { -fx-icon-color: -color-danger-fg; }
+
+.empty-state {
+    -fx-alignment: center;
+    -fx-spacing: 12;
+    -fx-padding: 48 24 48 24;
+}
+
+.empty-state .ikonli-font-icon {
+    -fx-icon-color: -color-fg-subtle;
+}
+
+.empty-title {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+/* ---------- Selos ---------- */
+
+.badge {
+    -fx-background-color: -color-neutral-muted;
+    -fx-background-radius: 999;
+    -fx-padding: 2 9 2 9;
+    -fx-font-size: 12px;
+    -fx-text-fill: -color-fg-default;
+}
+
+.badge.accent { -fx-background-color: -color-accent-subtle; -fx-text-fill: -color-accent-fg; }
+.badge.success { -fx-background-color: -color-success-subtle; -fx-text-fill: -color-success-fg; }
+.badge.danger { -fx-background-color: -color-danger-subtle; -fx-text-fill: -color-danger-fg; }
+.badge.warning { -fx-background-color: -color-warning-subtle; -fx-text-fill: -color-warning-fg; }
+
+/* ---------- Resolver questão ---------- */
+
+.base-text {
+    -fx-background-color: -color-bg-subtle;
+    -fx-background-radius: 0 8 8 0;
+    -fx-border-color: transparent transparent transparent -color-accent-emphasis;
+    -fx-border-width: 0 0 0 3;
+    -fx-padding: 14 16 14 16;
+    -fx-spacing: 8;
+}
+
+.base-text-body {
+    -fx-font-size: 14.5px;
+    -fx-line-spacing: 3;
+}
+
+.source {
+    -fx-text-fill: -color-fg-muted;
+    -fx-font-size: 12.5px;
+    -fx-font-style: italic;
+}
+
+.statement {
+    -fx-font-size: 16px;
+    -fx-line-spacing: 2;
+}
+
+.alt-button {
+    -fx-background-color: -color-bg-default;
+    -fx-background-radius: 10;
+    -fx-border-color: -color-border-default;
+    -fx-border-radius: 10;
+    -fx-border-width: 1.5;
+    -fx-padding: 12 14 12 14;
+    -fx-cursor: hand;
+}
+
+.alt-button:hover {
+    -fx-border-color: -color-accent-emphasis;
+}
+
+.alt-button:selected {
+    -fx-background-color: -color-accent-subtle;
+    -fx-border-color: -color-accent-emphasis;
+}
+
+.alt-letter {
+    -fx-min-width: 30;
+    -fx-min-height: 30;
+    -fx-max-width: 30;
+    -fx-max-height: 30;
+    -fx-background-radius: 15;
+    -fx-background-color: -color-bg-subtle;
+    -fx-border-color: -color-border-default;
+    -fx-border-radius: 15;
+    -fx-alignment: center;
+    -fx-font-weight: bold;
+}
+
+.alt-button:selected .alt-letter {
+    -fx-background-color: -color-accent-emphasis;
+    -fx-border-color: -color-accent-emphasis;
+    -fx-text-fill: -color-fg-emphasis;
+}
+
+.alt-text {
+    -fx-font-size: 14.5px;
+}
+
+.alt-button.correct {
+    -fx-background-color: -color-success-subtle;
+    -fx-border-color: -color-success-emphasis;
+}
+
+.alt-button.correct .alt-letter {
+    -fx-background-color: -color-success-emphasis;
+    -fx-border-color: -color-success-emphasis;
+    -fx-text-fill: -color-fg-emphasis;
+}
+
+.alt-button.wrong {
+    -fx-background-color: -color-danger-subtle;
+    -fx-border-color: -color-danger-emphasis;
+}
+
+.alt-button.wrong .alt-letter {
+    -fx-background-color: -color-danger-emphasis;
+    -fx-border-color: -color-danger-emphasis;
+    -fx-text-fill: -color-fg-emphasis;
+}
+
+.question-image {
+    -fx-border-color: -color-border-default;
+}
+
+/* ---------- Tabelas ---------- */
+
+.table-view {
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+}
+
+.cell-title {
+    -fx-font-size: 14px;
+}
+
+.cell-subtitle {
+    -fx-text-fill: -color-fg-muted;
+    -fx-font-size: 12px;
+}
+
+.pager {
+    -fx-alignment: center;
+    -fx-spacing: 12;
+}
+
+/* ---------- Importação ---------- */
+
+.steps {
+    -fx-spacing: 10;
+    -fx-alignment: center-left;
+}
+
+.step {
+    -fx-spacing: 8;
+    -fx-alignment: center-left;
+}
+
+.step-number {
+    -fx-min-width: 26;
+    -fx-min-height: 26;
+    -fx-max-width: 26;
+    -fx-max-height: 26;
+    -fx-background-radius: 13;
+    -fx-alignment: center;
+    -fx-background-color: -color-bg-subtle;
+    -fx-border-color: -color-border-default;
+    -fx-border-radius: 13;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.step.active .step-number, .step.done .step-number {
+    -fx-background-color: -color-accent-emphasis;
+    -fx-border-color: -color-accent-emphasis;
+    -fx-text-fill: -color-fg-emphasis;
+}
+
+.step-label {
+    -fx-text-fill: -color-fg-muted;
+}
+
+.step.active .step-label {
+    -fx-text-fill: -color-fg-default;
+    -fx-font-weight: bold;
+}
+
+.step-line {
+    -fx-min-width: 40;
+    -fx-max-height: 1;
+    -fx-min-height: 1;
+    -fx-background-color: -color-border-default;
+}
+
+.form-label {
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+}
+
+.hint {
+    -fx-text-fill: -color-fg-muted;
+    -fx-font-size: 12px;
+}
+
+.error-text {
+    -fx-text-fill: -color-danger-fg;
+}
+
+.page-viewer {
+    -fx-background-color: -color-bg-inset;
+}
+
+.region-highlight {
+    -fx-fill: rgba(9, 105, 218, 0.10);
+    -fx-stroke: -color-accent-emphasis;
+    -fx-stroke-width: 2;
+    -fx-arc-width: 6;
+    -fx-arc-height: 6;
+}
+
+.review-cell {
+    -fx-spacing: 6;
+    -fx-padding: 4 2 4 2;
+}
+
+.review-list .list-cell {
+    -fx-padding: 10 12 10 12;
+}
+
+.review-list .list-cell:filled:selected {
+    -fx-background-color: -color-accent-subtle;
+}
+
+.review-list .list-cell:filled:selected .label {
+    -fx-text-fill: -color-fg-default;
+}
+
+.alt-row {
+    -fx-spacing: 10;
+    -fx-alignment: top-left;
+}
